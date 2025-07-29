@@ -173,6 +173,33 @@ function App() {
     setLoading(false);
   };
 
+  const uploadAudioFile = async (ventaId) => {
+    if (!selectedAudioFile) return;
+    
+    setUploadingAudio(true);
+    const formData = new FormData();
+    formData.append('audio_file', selectedAudioFile);
+
+    try {
+      const response = await fetch(`${API_BASE}/api/ventas/${ventaId}/upload-audio`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (response.ok) {
+        console.log('Audio uploaded successfully');
+      } else {
+        console.error('Error uploading audio');
+      }
+    } catch (error) {
+      console.error('Error uploading audio:', error);
+    }
+    setUploadingAudio(false);
+  };
+
   const uploadImageFile = async (ventaId) => {
     if (!selectedImageFile) return;
     
