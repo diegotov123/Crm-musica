@@ -27,8 +27,12 @@ function App() {
     estado: 'Pagada y en producción',
     texto_cancion: '',
     observacion: '',
-    link_descarga: ''
+    link_descarga: '',
+    audio_filename: ''
   });
+
+  const [selectedAudioFile, setSelectedAudioFile] = useState(null);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
 
   useEffect(() => {
     if (token) {
