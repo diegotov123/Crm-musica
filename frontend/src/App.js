@@ -986,10 +986,10 @@ function App() {
                       </p>
                       <button
                         type="button"
-                        onClick={() => downloadAudio(editingVenta.id, editingVenta.nombre)}
+                        onClick={() => downloadAudio(editingVenta.id, editingVenta.nombre, editingVenta.estilo)}
                         className="text-blue-600 hover:text-blue-800 text-sm mt-1"
                       >
-                        🎵 Descargar archivo actual
+                        🎵 Descargar archivo actual como MP3
                       </button>
                     </div>
                   )}
