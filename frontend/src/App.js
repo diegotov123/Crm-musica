@@ -159,6 +159,11 @@ function App() {
           await uploadAudioFile(ventaData.id);
         }
         
+        // If there's an image file to upload
+        if (selectedImageFile) {
+          await uploadImageFile(ventaData.id);
+        }
+        
         fetchVentas();
         fetchStats();
         resetForm();
