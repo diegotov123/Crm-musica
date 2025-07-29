@@ -262,9 +262,29 @@ async def login(request: LoginRequest):
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.get("/api/ventas", response_model=List[VentaResponse])
-async def get_ventas(current_user: str = Depends(verify_token)):
+async def get_ventas(
+    current_user: str = Depends(verify_token), 
+    sort_order: str = Query("desc", description="Sort order: 'asc' or 'desc'"),
+    sort_by: str = Query("fecha", description="Sort by: 'fecha', 'nombre', 'valor'")
+):
     try:
-        ventas = list(ventas_collection.find({}, {"_id": 0}))
+        # Define sort direction
+        sort_direction = -1 if sort_order == "desc" else 1
+        
+        # Create sort criteria
+        sort_criteria = {}
+        if sort_by == "fecha":
+            sort_criteria = {"fecha": sort_direction}
+        elif sort_by == "nombre":
+            sort_criteria = {"nombre": sort_direction}
+        elif sort_by == "valor":
+            sort_criteria = {"valor": sort_direction}
+        else:
+            sort_criteria = {"fecha": -1}  # Default to newest first
+        
+        # Get ventas with sorting
+        ventas = list(ventas_collection.find({}, {"_id": 0}).sort(list(sort_criteria.items())))
+        
         # Filter out any records that might still have null IDs
         valid_ventas = [v for v in ventas if v.get('id') is not None]
         return valid_ventas
