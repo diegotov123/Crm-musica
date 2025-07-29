@@ -193,8 +193,14 @@ async def login(request: LoginRequest):
 
 @app.get("/api/ventas", response_model=List[VentaResponse])
 async def get_ventas(current_user: str = Depends(verify_token)):
-    ventas = list(ventas_collection.find({}, {"_id": 0}))
-    return ventas
+    try:
+        ventas = list(ventas_collection.find({}, {"_id": 0}))
+        # Filter out any records that might still have null IDs
+        valid_ventas = [v for v in ventas if v.get('id') is not None]
+        return valid_ventas
+    except Exception as e:
+        print(f"Error in get_ventas: {e}")
+        raise HTTPException(status_code=500, detail="Error retrieving ventas")
 
 @app.post("/api/ventas", response_model=VentaResponse)
 async def create_venta(venta: VentaModel, current_user: str = Depends(verify_token)):
