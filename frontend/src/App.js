@@ -322,10 +322,12 @@ function App() {
       texto_cancion: '',
       observacion: '',
       link_descarga: '',
-      audio_filename: ''
+      audio_filename: '',
+      confirmacion_pago_imagen: ''
     });
     setEditingVenta(null);
     setSelectedAudioFile(null);
+    setSelectedImageFile(null);
   };
 
   const filteredVentas = ventas.filter(venta => {
