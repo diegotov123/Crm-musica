@@ -273,7 +273,7 @@ function App() {
   };
 
   const handleDeleteVenta = async (id) => {
-    if (!window.confirm('¿Está seguro de eliminar esta venta?')) return;
+    if (!window.confirm('¿Está seguro de eliminar esta venta? Esta acción también eliminará el archivo de audio asociado y no se puede deshacer.')) return;
 
     try {
       const response = await fetch(`${API_BASE}/api/ventas/${id}`, {
@@ -284,12 +284,21 @@ function App() {
       });
 
       if (response.ok) {
+        const result = await response.json();
         fetchVentas();
         fetchStats();
-        alert('Venta eliminada');
+        if (result.audio_deleted) {
+          alert('✅ Venta y archivo de audio eliminados exitosamente');
+        } else {
+          alert('✅ Venta eliminada exitosamente');
+        }
+      } else {
+        const errorText = await response.text();
+        alert(`❌ Error al eliminar la venta: ${errorText}`);
       }
     } catch (error) {
-      alert('Error al eliminar');
+      console.error('Error al eliminar venta:', error);
+      alert('❌ Error de conexión al eliminar la venta');
     }
   };
 
