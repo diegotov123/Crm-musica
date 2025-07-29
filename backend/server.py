@@ -427,6 +427,65 @@ async def download_audio(
         print(f"Error in download_audio: {e}")
         raise HTTPException(status_code=500, detail=f"Error downloading file: {str(e)}")
 
+@app.get("/api/ventas/{venta_id}/download-mobile")
+async def download_audio_mobile(venta_id: str, token: str = Query(...)):
+    """Mobile-optimized download endpoint"""
+    try:
+        # Verify token from query parameter
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            username = payload.get("sub")
+            if not username:
+                raise HTTPException(status_code=401, detail="Invalid token")
+        except jwt.PyJWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        
+        # Get venta with audio filename
+        venta = ventas_collection.find_one({"id": venta_id})
+        if not venta:
+            raise HTTPException(status_code=404, detail="Venta not found")
+        
+        audio_filename = venta.get("audio_filename")
+        if not audio_filename:
+            raise HTTPException(status_code=404, detail="No audio file found")
+        
+        file_path = os.path.join(UPLOAD_DIR, audio_filename)
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="Audio file not found")
+        
+        # Create filename
+        cliente_name = venta.get('nombre', 'cliente').strip()
+        estilo = venta.get('estilo', 'cancion').strip()
+        
+        import re
+        cliente_clean = re.sub(r'[^\w\s-]', '', cliente_name).strip()
+        cliente_clean = re.sub(r'[-\s]+', '_', cliente_clean)
+        estilo_clean = re.sub(r'[^\w\s-]', '', estilo).strip()
+        estilo_clean = re.sub(r'[-\s]+', '_', estilo_clean)
+        
+        download_filename = f"{cliente_clean}_{estilo_clean}.mp3"
+        if not cliente_clean or cliente_clean == '_':
+            download_filename = f"audio_{venta_id[:8]}.mp3"
+        
+        print(f"Mobile download: {download_filename}")
+        
+        # Return file with mobile-optimized headers
+        return FileResponse(
+            path=file_path,
+            filename=download_filename,
+            media_type='audio/mpeg',
+            headers={
+                "Content-Disposition": f'attachment; filename="{download_filename}"',
+                "Content-Type": "audio/mpeg"
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error in mobile download: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.delete("/api/ventas/{venta_id}/audio")
 async def delete_audio(venta_id: str, current_user: str = Depends(verify_token)):
     """Delete audio file for a specific venta"""
