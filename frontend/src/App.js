@@ -297,51 +297,116 @@ function App() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-800 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-2xl shadow-2xl w-96 max-w-md">
+      <div className="min-h-screen dashboard-bg flex items-center justify-center relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute top-3/4 right-1/4 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+          <div className="absolute bottom-1/4 left-1/3 w-32 h-32 bg-pink-500/10 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
+        </div>
+
+        <div className="relative z-10 bg-gray-900/80 backdrop-filter backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-96 max-w-md border border-cyan-500/30 neon-border">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">🎵 Ventas Music DT</h1>
-            <p className="text-gray-600">Sistema de Gestión de Ventas</p>
+            <div className="mb-4">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-2 text-glow">
+                🎵 Ventas Music DT
+              </h1>
+              <div className="flex justify-center space-x-1 mt-2">
+                <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse shadow-lg shadow-cyan-400/50"></div>
+                <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse shadow-lg shadow-purple-400/50" style={{animationDelay: '0.5s'}}></div>
+                <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse shadow-lg shadow-pink-400/50" style={{animationDelay: '1s'}}></div>
+              </div>
+            </div>
+            <p className="text-gray-300 text-sm">Sistema de Gestión de Ventas Musicales</p>
+            <p className="text-cyan-400 text-xs mt-1 glow-text-cyan">Inicia sesión para continuar</p>
           </div>
           
           <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Usuario
+            <div className="relative">
+              <label className="block text-sm font-medium text-cyan-300 mb-2 glow-text-cyan">
+                👤 Usuario
               </label>
-              <input
-                type="text"
-                value={loginData.username}
-                onChange={(e) => setLoginData({...loginData, username: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Ingrese su usuario"
-                required
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={loginData.username}
+                  onChange={(e) => setLoginData({...loginData, username: e.target.value})}
+                  className="neon-input w-full px-4 py-3 rounded-lg transition-all duration-300 focus:scale-105"
+                  placeholder="Ingrese su usuario"
+                  required
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-lg opacity-0 transition-opacity duration-300 pointer-events-none group-hover:opacity-100"></div>
+              </div>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Contraseña
+            <div className="relative">
+              <label className="block text-sm font-medium text-purple-300 mb-2 glow-text-purple">
+                🔒 Contraseña
               </label>
-              <input
-                type="password"
-                value={loginData.password}
-                onChange={(e) => setLoginData({...loginData, password: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Ingrese su contraseña"
-                required
-              />
+              <div className="relative">
+                <input
+                  type="password"
+                  value={loginData.password}
+                  onChange={(e) => setLoginData({...loginData, password: e.target.value})}
+                  className="neon-input w-full px-4 py-3 rounded-lg transition-all duration-300 focus:scale-105"
+                  placeholder="Ingrese su contraseña"
+                  required
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg opacity-0 transition-opacity duration-300 pointer-events-none group-hover:opacity-100"></div>
+              </div>
             </div>
             
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50"
+              className="w-full neon-button py-3 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
             >
-              {loading ? 'Ingresando...' : 'Ingresar'}
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+              <span className="relative z-10">
+                {loading ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="neon-spinner w-5 h-5"></div>
+                    <span>Ingresando...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center space-x-2">
+                    <span>🚀</span>
+                    <span>Ingresar al Sistema</span>
+                  </div>
+                )}
+              </span>
             </button>
           </form>
+
+          {/* Footer with animated elements */}
+          <div className="mt-8 text-center">
+            <div className="flex justify-center space-x-4 text-gray-500 text-xs">
+              <span className="flex items-center space-x-1">
+                <div className="w-1 h-1 bg-cyan-400 rounded-full animate-pulse"></div>
+                <span>Seguro</span>
+              </span>
+              <span className="flex items-center space-x-1">
+                <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                <span>Rápido</span>
+              </span>
+              <span className="flex items-center space-x-1">
+                <div className="w-1 h-1 bg-purple-400 rounded-full animate-pulse" style={{animationDelay: '2s'}}></div>
+                <span>Moderno</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Decorative elements */}
+          <div className="absolute -top-2 -left-2 w-4 h-4 border-l-2 border-t-2 border-cyan-400 rounded-tl-lg opacity-50"></div>
+          <div className="absolute -top-2 -right-2 w-4 h-4 border-r-2 border-t-2 border-purple-400 rounded-tr-lg opacity-50"></div>
+          <div className="absolute -bottom-2 -left-2 w-4 h-4 border-l-2 border-b-2 border-pink-400 rounded-bl-lg opacity-50"></div>
+          <div className="absolute -bottom-2 -right-2 w-4 h-4 border-r-2 border-b-2 border-cyan-400 rounded-br-lg opacity-50"></div>
         </div>
+
+        {/* Additional background effects */}
+        <div className="absolute bottom-10 left-10 text-gray-700/30 text-6xl animate-float">🎵</div>
+        <div className="absolute top-10 right-10 text-gray-700/30 text-4xl animate-float" style={{animationDelay: '3s'}}>🎼</div>
+        <div className="absolute top-1/2 left-10 text-gray-700/30 text-5xl animate-float" style={{animationDelay: '1.5s'}}>🎤</div>
       </div>
     );
   }
