@@ -18,6 +18,10 @@ import shutil
 # Initialize FastAPI app
 app = FastAPI()
 
+# Create uploads directory
+UPLOAD_DIR = "/app/uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
