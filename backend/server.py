@@ -353,9 +353,24 @@ async def upload_audio(
         raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
 
 @app.get("/api/ventas/{venta_id}/download-audio")
-async def download_audio(venta_id: str, current_user: str = Depends(verify_token_flexible)):
-    """Download audio file for a specific venta - Simple and reliable"""
+@app.post("/api/ventas/{venta_id}/download-audio")
+async def download_audio(
+    venta_id: str, 
+    current_user: str = Depends(verify_token_flexible),
+    mobile_token: Optional[str] = Form(None)
+):
+    """Download audio file - Works on both mobile and desktop"""
     try:
+        # For mobile POST requests, verify token from form
+        if mobile_token:
+            try:
+                payload = jwt.decode(mobile_token, SECRET_KEY, algorithms=[ALGORITHM])
+                username = payload.get("sub")
+                if not username:
+                    raise HTTPException(status_code=401, detail="Invalid mobile token")
+            except jwt.PyJWTError:
+                raise HTTPException(status_code=401, detail="Invalid mobile token")
+        
         # Get venta with audio filename
         venta = ventas_collection.find_one({"id": venta_id})
         if not venta:
@@ -373,7 +388,7 @@ async def download_audio(venta_id: str, current_user: str = Depends(verify_token
         cliente_name = venta.get('nombre', 'cliente').strip()
         estilo = venta.get('estilo', 'cancion').strip()
         
-        # Clean the filename by removing special characters
+        # Clean the filename
         import re
         cliente_clean = re.sub(r'[^\w\s-]', '', cliente_name).strip()
         cliente_clean = re.sub(r'[-\s]+', '_', cliente_clean)
@@ -389,11 +404,21 @@ async def download_audio(venta_id: str, current_user: str = Depends(verify_token
         
         print(f"Downloading audio: {audio_filename} as {download_filename}")
         
-        # Use FileResponse for maximum compatibility
+        # Mobile-friendly headers
+        headers = {
+            "Content-Disposition": f'attachment; filename="{download_filename}"',
+            "Content-Type": "application/force-download",
+            "Content-Transfer-Encoding": "binary",
+            "Cache-Control": "must-revalidate, post-check=0, pre-check=0",
+            "Pragma": "public"
+        }
+        
+        # Use FileResponse with mobile-friendly configuration
         return FileResponse(
             path=file_path,
             filename=download_filename,
-            media_type='audio/mpeg'
+            media_type='application/octet-stream',  # More mobile-compatible
+            headers=headers
         )
         
     except HTTPException:
