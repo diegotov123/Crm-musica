@@ -643,7 +643,12 @@ class VentasMusicAPITester:
         print("\n🎵 Audio Functionality Tests:")
         self.test_upload_audio()
         self.test_download_audio()
+        self.test_download_audio_query_token()  # CRITICAL TEST
         self.test_delete_audio()
+        
+        # CRITICAL TEST - DIEGOTO download
+        print("\n🎯 CRITICAL TEST - DIEGOTO Download:")
+        self.test_diegoto_download()
         
         # Cleanup
         print("\n🧹 Cleanup Tests:")
