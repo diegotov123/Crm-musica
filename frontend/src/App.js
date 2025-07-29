@@ -726,6 +726,30 @@ function App() {
               </div>
             </div>
 
+              {/* Top Clientes por Teléfono */}
+              <div className="bg-gray-900 rounded-2xl p-6 border border-orange-500/30 shadow-2xl">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+                  <span className="mr-3">📱</span>
+                  <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
+                    Top por Teléfono
+                  </span>
+                </h3>
+                <div className="space-y-3">
+                  {stats.top_clientes_telefono?.map((cliente, index) => (
+                    <div key={index} className="flex justify-between items-center p-3 rounded-lg border border-orange-500/20 bg-orange-500/5 shadow-lg">
+                      <div>
+                        <div className="text-white font-medium">{cliente._id}</div>
+                        <div className="text-orange-300 text-sm">{cliente.nombre} - {cliente.cantidad_pedidos} pedidos</div>
+                      </div>
+                      <div className="text-orange-400 font-bold">
+                        {formatCurrency(cliente.total_gastado)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Ventas por Estado */}
@@ -738,8 +762,8 @@ function App() {
                 </h3>
                 <div className="space-y-4">
                   {stats.ventas_por_estado?.map((item, index) => {
-                    const colors = ['border-green-500 bg-green-500/10', 'border-yellow-500 bg-yellow-500/10', 'border-red-500 bg-red-500/10'];
-                    const glowColors = ['shadow-green-500/20', 'shadow-yellow-500/20', 'shadow-red-500/20'];
+                    const colors = ['border-green-500 bg-green-500/10', 'border-yellow-500 bg-yellow-500/10', 'border-red-500 bg-red-500/10', 'border-purple-500 bg-purple-500/10'];
+                    const glowColors = ['shadow-green-500/20', 'shadow-yellow-500/20', 'shadow-red-500/20', 'shadow-purple-500/20'];
                     
                     return (
                       <div key={index} className={`flex justify-between items-center p-3 rounded-lg border ${colors[index % colors.length]} ${glowColors[index % glowColors.length]} shadow-lg`}>
@@ -751,12 +775,12 @@ function App() {
                 </div>
               </div>
               
-              {/* Top Clientes */}
+              {/* Top Clientes por Nombre */}
               <div className="bg-gray-900 rounded-2xl p-6 border border-green-500/30 shadow-2xl">
                 <h3 className="text-xl font-bold text-white mb-4 flex items-center">
                   <span className="mr-3">👑</span>
                   <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                    Top Clientes
+                    Top Clientes por Nombre
                   </span>
                 </h3>
                 <div className="space-y-3">
@@ -764,7 +788,7 @@ function App() {
                     <div key={index} className="flex justify-between items-center p-3 rounded-lg border border-green-500/20 bg-green-500/5 shadow-lg">
                       <div>
                         <div className="text-white font-medium">{cliente._id}</div>
-                        <div className="text-green-300 text-sm">{cliente.cantidad_pedidos} pedidos</div>
+                        <div className="text-green-300 text-sm">{cliente.celular} - {cliente.cantidad_pedidos} pedidos</div>
                       </div>
                       <div className="text-green-400 font-bold">
                         {formatCurrency(cliente.total_gastado)}
