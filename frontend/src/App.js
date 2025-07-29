@@ -347,18 +347,18 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen dashboard-bg">
       {/* Header */}
-      <header className="bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg">
+      <header className="bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 text-white shadow-2xl border-b border-cyan-500/20">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold">🎵 Ventas Music DT</h1>
-              <p className="text-purple-100">Sistema de Gestión de Ventas</p>
+              <h1 className="text-2xl font-bold text-glow">🎵 Ventas Music DT</h1>
+              <p className="text-cyan-200">Sistema de Gestión de Ventas</p>
             </div>
             <button
               onClick={handleLogout}
-              className="bg-white text-purple-600 px-4 py-2 rounded-lg font-medium hover:bg-purple-50 transition-colors"
+              className="neon-button"
             >
               Cerrar Sesión
             </button>
@@ -367,25 +367,25 @@ function App() {
       </header>
 
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
+      <nav className="bg-gray-900/80 backdrop-filter backdrop-blur-lg shadow-sm border-b border-cyan-500/20">
         <div className="container mx-auto px-4">
           <div className="flex space-x-8">
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`py-4 px-2 border-b-2 font-medium text-sm ${
+              className={`py-4 px-2 border-b-2 font-medium text-sm transition-all duration-300 ${
                 activeTab === 'dashboard' 
-                  ? 'border-purple-500 text-purple-600' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-cyan-400 text-cyan-400 glow-text-cyan' 
+                  : 'border-transparent text-gray-400 hover:text-cyan-300'
               }`}
             >
               📊 Dashboard
             </button>
             <button
               onClick={() => setActiveTab('ventas')}
-              className={`py-4 px-2 border-b-2 font-medium text-sm ${
+              className={`py-4 px-2 border-b-2 font-medium text-sm transition-all duration-300 ${
                 activeTab === 'ventas' 
-                  ? 'border-purple-500 text-purple-600' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-purple-400 text-purple-400 glow-text-purple' 
+                  : 'border-transparent text-gray-400 hover:text-purple-300'
               }`}
             >
               💰 Ventas
