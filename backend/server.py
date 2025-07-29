@@ -56,6 +56,7 @@ class VentaModel(BaseModel):
     texto_cancion: str
     observacion: str = ""
     link_descarga: str = ""
+    audio_filename: str = ""
 
 class VentaResponse(BaseModel):
     id: str
@@ -69,6 +70,7 @@ class VentaResponse(BaseModel):
     texto_cancion: str
     observacion: str
     link_descarga: str
+    audio_filename: str
 
 # Initialize default user
 def init_default_user():
