@@ -226,47 +226,19 @@ function App() {
   };
 
   const handleDeleteVenta = async (id) => {
-    const ventaName = ventas.find(v => v.id === id)?.nombre || 'esta venta';
-    
-    if (!window.confirm(`¿Eliminar "${ventaName}"?\n\nEsta acción eliminará la venta y su archivo de audio (si existe) y no se puede deshacer.`)) {
-      return;
-    }
+    if (!confirm('¿Eliminar esta venta?')) return;
 
-    try {
-      console.log('🗑️ Eliminando venta:', id);
-      
-      const response = await fetch(`${API_BASE}/api/ventas/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+    const response = await fetch(`${API_BASE}/api/ventas/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Venta eliminada:', result);
-        
-        // Actualizar datos
-        await fetchVentas();
-        await fetchStats();
-        
-        // Mensaje de confirmación
-        const message = result.audio_deleted 
-          ? `✅ "${ventaName}" eliminada (incluido archivo de audio)`
-          : `✅ "${ventaName}" eliminada exitosamente`;
-        
-        alert(message);
-        
-      } else {
-        const errorData = await response.text();
-        console.error('❌ Error al eliminar:', response.status, errorData);
-        alert(`❌ Error al eliminar la venta (${response.status}). Intenta de nuevo.`);
-      }
-      
-    } catch (error) {
-      console.error('❌ Error de conexión al eliminar:', error);
-      alert('❌ Error de conexión. Verifica tu internet e intenta de nuevo.');
+    if (response.ok) {
+      fetchVentas();
+      fetchStats();
+      alert('Venta eliminada');
+    } else {
+      alert('Error al eliminar');
     }
   };
 
