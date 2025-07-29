@@ -568,6 +568,44 @@ function App() {
 
       {/* Content */}
       <main className="container mx-auto px-4 py-8">
+        
+        {/* Notifications */}
+        {notifications.length > 0 && (
+          <div className="fixed top-20 right-4 z-50 space-y-2">
+            {notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className={`notification-card p-4 rounded-xl shadow-2xl border max-w-sm animate-slide-in ${
+                  notification.type === 'success' ? 'bg-gradient-to-r from-green-900 to-emerald-900 border-green-500' :
+                  notification.type === 'delivery' ? 'bg-gradient-to-r from-purple-900 to-pink-900 border-purple-500' :
+                  'bg-gradient-to-r from-blue-900 to-cyan-900 border-cyan-500'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-white font-medium text-sm">
+                      {notification.message}
+                    </p>
+                    <p className="text-gray-300 text-xs mt-1">
+                      {notification.timestamp.toLocaleTimeString('es-CO')}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => removeNotification(notification.id)}
+                    className="text-gray-400 hover:text-white ml-3"
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className={`absolute bottom-0 left-0 h-1 bg-gradient-to-r ${
+                  notification.type === 'success' ? 'from-green-400 to-emerald-400' :
+                  notification.type === 'delivery' ? 'from-purple-400 to-pink-400' :
+                  'from-blue-400 to-cyan-400'
+                } notification-progress`}></div>
+              </div>
+            ))}
+          </div>
+        )}
         {activeTab === 'dashboard' && (
           <div className="space-y-8">
             <div className="text-center mb-8">
