@@ -201,25 +201,52 @@ function App() {
     try {
       console.log('Iniciando descarga de audio para venta:', ventaId);
       
-      // Direct URL approach with token in query parameter
-      const downloadUrl = `${API_BASE}/api/ventas/${ventaId}/download-audio?token=${encodeURIComponent(token)}`;
-      
-      // Create a direct link and click it
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = `${nombreCliente.replace(/[^a-zA-Z0-9]/g, '_')}_${estilo.replace(/[^a-zA-Z0-9]/g, '_')}.mp3`;
-      link.target = '_blank';
-      link.style.display = 'none';
-      
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      alert(`🎵 Descarga iniciada: ${nombreCliente} - ${estilo}`);
+      const response = await fetch(`${API_BASE}/api/ventas/${ventaId}/download-audio`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'audio/mpeg,audio/*,*/*'
+        }
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        
+        if (blob.size === 0) {
+          alert('❌ El archivo de audio está vacío');
+          return;
+        }
+
+        // Create download filename
+        const cleanName = nombreCliente.replace(/[^a-zA-Z0-9]/g, '_');
+        const cleanEstilo = estilo.replace(/[^a-zA-Z0-9]/g, '_');
+        const filename = `${cleanName}_${cleanEstilo}.mp3`;
+
+        // Create download link
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        
+        // Cleanup
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        alert(`✅ Audio descargado: ${filename}`);
+      } else if (response.status === 404) {
+        alert('❌ No se encontró el archivo de audio para descargar');
+      } else if (response.status === 401) {
+        alert('❌ Error de autenticación. Por favor, vuelve a iniciar sesión.');
+      } else {
+        const errorText = await response.text();
+        alert(`❌ Error al descargar: ${response.status} - ${errorText}`);
+      }
       
     } catch (error) {
       console.error('Error en downloadAudio:', error);
-      alert('❌ Error al descargar el archivo de audio');
+      alert('❌ Error de conexión al descargar el audio');
     }
   };
 
