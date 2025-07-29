@@ -494,6 +494,120 @@ async def download_audio_mobile(venta_id: str, token: str = Query(...)):
         print(f"❌ Unexpected error in download: {e}")
         raise HTTPException(status_code=500, detail="Download error")
 
+@app.post("/api/ventas/{venta_id}/upload-confirmacion-pago")
+async def upload_confirmacion_pago(
+    venta_id: str,
+    imagen_file: UploadFile = File(...),
+    current_user: str = Depends(verify_token)
+):
+    """Upload payment confirmation image for a specific venta"""
+    # Validate venta exists
+    venta = ventas_collection.find_one({"id": venta_id})
+    if not venta:
+        raise HTTPException(status_code=404, detail="Venta not found")
+    
+    # Validate file type (image files)
+    allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
+    file_extension = os.path.splitext(imagen_file.filename)[1].lower()
+    if file_extension not in allowed_extensions:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"File type not allowed. Allowed types: {', '.join(allowed_extensions)}"
+        )
+    
+    try:
+        # Generate unique filename
+        unique_filename = f"pago_{venta_id}_{uuid.uuid4().hex}{file_extension}"
+        file_path = os.path.join(UPLOAD_DIR, unique_filename)
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(imagen_file.file, buffer)
+        
+        # Update venta with image filename
+        ventas_collection.update_one(
+            {"id": venta_id},
+            {"$set": {
+                "confirmacion_pago_imagen": unique_filename,
+                "updated_at": datetime.now()
+            }}
+        )
+        
+        return {
+            "message": "Payment confirmation image uploaded successfully",
+            "filename": unique_filename,
+            "original_filename": imagen_file.filename
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error uploading image: {str(e)}")
+
+@app.get("/api/ventas/{venta_id}/view-confirmacion-pago")
+async def view_confirmacion_pago(venta_id: str, current_user: str = Depends(verify_token_flexible)):
+    """View payment confirmation image for a specific venta"""
+    try:
+        # Get venta with image filename
+        venta = ventas_collection.find_one({"id": venta_id})
+        if not venta:
+            raise HTTPException(status_code=404, detail="Venta not found")
+        
+        imagen_filename = venta.get("confirmacion_pago_imagen")
+        if not imagen_filename:
+            raise HTTPException(status_code=404, detail="No payment confirmation image found")
+        
+        file_path = os.path.join(UPLOAD_DIR, imagen_filename)
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="Image file not found on disk")
+        
+        # Determine media type based on extension
+        file_extension = os.path.splitext(imagen_filename)[1].lower()
+        media_type_map = {
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.gif': 'image/gif',
+            '.bmp': 'image/bmp',
+            '.webp': 'image/webp'
+        }
+        media_type = media_type_map.get(file_extension, 'image/jpeg')
+        
+        return FileResponse(
+            path=file_path,
+            media_type=media_type
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error viewing image: {str(e)}")
+
+@app.delete("/api/ventas/{venta_id}/confirmacion-pago")
+async def delete_confirmacion_pago(venta_id: str, current_user: str = Depends(verify_token)):
+    """Delete payment confirmation image for a specific venta"""
+    venta = ventas_collection.find_one({"id": venta_id})
+    if not venta:
+        raise HTTPException(status_code=404, detail="Venta not found")
+    
+    imagen_filename = venta.get("confirmacion_pago_imagen")
+    if not imagen_filename:
+        raise HTTPException(status_code=404, detail="No payment confirmation image found")
+    
+    try:
+        file_path = os.path.join(UPLOAD_DIR, imagen_filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        
+        # Update venta to remove image filename
+        ventas_collection.update_one(
+            {"id": venta_id},
+            {"$set": {"confirmacion_pago_imagen": "", "updated_at": datetime.now()}}
+        )
+        
+        return {"message": "Payment confirmation image deleted successfully"}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting image: {str(e)}")
+
 @app.delete("/api/ventas/{venta_id}/audio")
 async def delete_audio(venta_id: str, current_user: str = Depends(verify_token)):
     """Delete audio file for a specific venta"""
