@@ -822,6 +822,7 @@ async def upload_excel(file: UploadFile = File(...), current_user: str = Depends
                     "audio_filename": "",  # Initially empty for imported data
                     "audio_original_name": "",
                     "audio_size": 0,
+                    "confirmacion_pago_imagen": "",  # Initially empty for imported data
                     "created_at": datetime.now()
                 }
                 
