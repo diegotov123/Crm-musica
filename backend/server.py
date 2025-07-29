@@ -328,28 +328,39 @@ async def download_audio(venta_id: str, current_user: str = Depends(verify_token
         
         print(f"Downloading audio: {audio_filename} as {download_filename}")
         
-        return FileResponse(
-            path=file_path,
-            filename=download_filename,
-            media_type='audio/mpeg',
-            headers={
-                "Content-Disposition": f'attachment; filename="{download_filename}"',
-                "Content-Type": "audio/mpeg",
-                "Cache-Control": "no-cache"
-            }
+        # Use streaming response for better compatibility
+        def file_streamer():
+            with open(file_path, 'rb') as file:
+                while chunk := file.read(8192):
+                    yield chunk
+        
+        # Get file size for Content-Length header
+        file_size = os.path.getsize(file_path)
+        
+        headers = {
+            "Content-Disposition": f'attachment; filename="{download_filename}"',
+            "Content-Type": "audio/mpeg",
+            "Content-Length": str(file_size),
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+        
+        return StreamingResponse(
+            file_streamer(),
+            media_type="audio/mpeg",
+            headers=headers
         )
+        
     except Exception as e:
-        print(f"Error creating download filename: {e}")
-        # Fallback filename
+        print(f"Error in download_audio: {e}")
+        # Fallback to simple FileResponse
         download_filename = f"audio_venta_{venta_id[:8]}.mp3"
         return FileResponse(
             path=file_path,
             filename=download_filename,
-            media_type='audio/mpeg',
-            headers={
-                "Content-Disposition": f'attachment; filename="{download_filename}"',
-                "Content-Type": "audio/mpeg"
-            }
+            media_type='audio/mpeg'
         )
 
 @app.delete("/api/ventas/{venta_id}/audio")
