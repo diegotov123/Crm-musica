@@ -397,79 +397,206 @@ function App() {
       {/* Content */}
       <main className="container mx-auto px-4 py-8">
         {activeTab === 'dashboard' && (
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Dashboard</h2>
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-2">
+                🎵 Dashboard Music DT
+              </h2>
+              <p className="text-gray-600">Panel de control con estadísticas en tiempo real</p>
+            </div>
             
-            {/* Stats Cards */}
+            {/* Neon Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
-                <div className="flex items-center">
-                  <div className="text-blue-500 text-2xl mr-3">📈</div>
-                  <div>
-                    <p className="text-sm text-gray-600">Total Ventas</p>
-                    <p className="text-2xl font-bold text-gray-800">{stats.total_ventas || 0}</p>
+              <div className="relative bg-gray-900 rounded-2xl p-6 border border-cyan-500/30 shadow-2xl overflow-hidden group hover:border-cyan-400 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-cyan-400 text-3xl">📈</div>
+                    <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse shadow-lg shadow-cyan-400/50"></div>
                   </div>
+                  <p className="text-cyan-300 text-sm font-medium">Total Ventas</p>
+                  <p className="text-white text-3xl font-bold mt-1 glow-text-cyan">{stats.total_ventas || 0}</p>
                 </div>
+                <div className="absolute -bottom-2 -right-2 w-20 h-20 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-full blur-xl"></div>
               </div>
               
-              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500">
-                <div className="flex items-center">
-                  <div className="text-green-500 text-2xl mr-3">💵</div>
-                  <div>
-                    <p className="text-sm text-gray-600">Total Ingresos</p>
-                    <p className="text-2xl font-bold text-gray-800">{formatCurrency(stats.total_ingresos || 0)}</p>
+              <div className="relative bg-gray-900 rounded-2xl p-6 border border-green-500/30 shadow-2xl overflow-hidden group hover:border-green-400 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-green-400 text-3xl">💵</div>
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50"></div>
                   </div>
+                  <p className="text-green-300 text-sm font-medium">Total Ingresos</p>
+                  <p className="text-white text-2xl font-bold mt-1 glow-text-green">{formatCurrency(stats.total_ingresos || 0)}</p>
                 </div>
+                <div className="absolute -bottom-2 -right-2 w-20 h-20 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full blur-xl"></div>
               </div>
               
-              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-purple-500">
-                <div className="flex items-center">
-                  <div className="text-purple-500 text-2xl mr-3">🎵</div>
-                  <div>
-                    <p className="text-sm text-gray-600">Estilos Musicales</p>
-                    <p className="text-2xl font-bold text-gray-800">{stats.ventas_por_estilo?.length || 0}</p>
+              <div className="relative bg-gray-900 rounded-2xl p-6 border border-purple-500/30 shadow-2xl overflow-hidden group hover:border-purple-400 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-purple-400 text-3xl">🎵</div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse shadow-lg shadow-purple-400/50"></div>
                   </div>
+                  <p className="text-purple-300 text-sm font-medium">Estilos Musicales</p>
+                  <p className="text-white text-3xl font-bold mt-1 glow-text-purple">{stats.ventas_por_estilo?.length || 0}</p>
                 </div>
+                <div className="absolute -bottom-2 -right-2 w-20 h-20 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-xl"></div>
               </div>
               
-              <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-orange-500">
-                <div className="flex items-center">
-                  <div className="text-orange-500 text-2xl mr-3">📋</div>
-                  <div>
-                    <p className="text-sm text-gray-600">Estados</p>
-                    <p className="text-2xl font-bold text-gray-800">{stats.ventas_por_estado?.length || 0}</p>
+              <div className="relative bg-gray-900 rounded-2xl p-6 border border-orange-500/30 shadow-2xl overflow-hidden group hover:border-orange-400 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-orange-400 text-3xl">📋</div>
+                    <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse shadow-lg shadow-orange-400/50"></div>
                   </div>
+                  <p className="text-orange-300 text-sm font-medium">Estados</p>
+                  <p className="text-white text-3xl font-bold mt-1 glow-text-orange">{stats.ventas_por_estado?.length || 0}</p>
+                </div>
+                <div className="absolute -bottom-2 -right-2 w-20 h-20 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-full blur-xl"></div>
+              </div>
+            </div>
+
+            {/* Ingresos por Día - Gráfico Neón */}
+            <div className="bg-gray-900 rounded-2xl p-8 border border-cyan-500/30 shadow-2xl mb-8">
+              <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+                <span className="mr-3">📊</span>
+                <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                  Ingresos por Día
+                </span>
+              </h3>
+              
+              <div className="relative h-64 overflow-x-auto">
+                <div className="flex items-end justify-center space-x-3 h-full min-w-max px-4">
+                  {stats.ingresos_por_dia?.map((dia, index) => {
+                    const maxIngreso = Math.max(...(stats.ingresos_por_dia?.map(d => d.ingresos) || [1]));
+                    const height = (dia.ingresos / maxIngreso) * 200;
+                    const colors = [
+                      'from-cyan-500 to-blue-500',
+                      'from-purple-500 to-pink-500', 
+                      'from-green-500 to-emerald-500',
+                      'from-orange-500 to-red-500',
+                      'from-yellow-500 to-amber-500'
+                    ];
+                    const colorClass = colors[index % colors.length];
+                    
+                    return (
+                      <div key={index} className="flex flex-col items-center group">
+                        <div className="relative mb-2">
+                          <div 
+                            className={`w-12 bg-gradient-to-t ${colorClass} rounded-t-lg shadow-lg transition-all duration-300 group-hover:shadow-2xl group-hover:scale-105`}
+                            style={{ height: `${Math.max(height, 10)}px` }}
+                          >
+                            {/* Efecto neón */}
+                            <div className={`absolute inset-0 bg-gradient-to-t ${colorClass} rounded-t-lg opacity-50 blur-sm`}></div>
+                          </div>
+                          
+                          {/* Tooltip */}
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <div className="bg-black/80 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap border border-cyan-500/30">
+                              <div className="font-semibold text-cyan-300">{formatCurrency(dia.ingresos)}</div>
+                              <div className="text-gray-300">{dia.cantidad} ventas</div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="text-xs text-gray-400 text-center transform rotate-45 w-16">
+                          {new Date(dia._id).toLocaleDateString('es-CO', { 
+                            month: 'short', 
+                            day: 'numeric' 
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
 
-            {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Ventas por Estado</h3>
-                <div className="space-y-3">
-                  {stats.ventas_por_estado?.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center">
-                      <span className="text-gray-600">{item._id}</span>
-                      <span className="font-semibold">{item.count}</span>
-                    </div>
-                  ))}
+            {/* Charts Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Ventas por Estado */}
+              <div className="bg-gray-900 rounded-2xl p-6 border border-purple-500/30 shadow-2xl">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+                  <span className="mr-3">📋</span>
+                  <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    Ventas por Estado
+                  </span>
+                </h3>
+                <div className="space-y-4">
+                  {stats.ventas_por_estado?.map((item, index) => {
+                    const colors = ['border-green-500 bg-green-500/10', 'border-yellow-500 bg-yellow-500/10', 'border-red-500 bg-red-500/10'];
+                    const glowColors = ['shadow-green-500/20', 'shadow-yellow-500/20', 'shadow-red-500/20'];
+                    
+                    return (
+                      <div key={index} className={`flex justify-between items-center p-3 rounded-lg border ${colors[index % colors.length]} ${glowColors[index % glowColors.length]} shadow-lg`}>
+                        <span className="text-gray-300 font-medium">{item._id}</span>
+                        <span className="text-white font-bold text-lg">{item.count}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
               
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Ventas por Estilo Musical</h3>
-                <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {stats.ventas_por_estilo?.slice(0, 8).map((item, index) => (
-                    <div key={index} className="flex justify-between items-center">
-                      <span className="text-gray-600 truncate">{item._id}</span>
-                      <div className="text-right">
-                        <div className="font-semibold">{item.count}</div>
-                        <div className="text-sm text-gray-500">{formatCurrency(item.total_valor)}</div>
+              {/* Top Clientes */}
+              <div className="bg-gray-900 rounded-2xl p-6 border border-green-500/30 shadow-2xl">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+                  <span className="mr-3">👑</span>
+                  <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+                    Top Clientes
+                  </span>
+                </h3>
+                <div className="space-y-3">
+                  {stats.top_clientes?.map((cliente, index) => (
+                    <div key={index} className="flex justify-between items-center p-3 rounded-lg border border-green-500/20 bg-green-500/5 shadow-lg">
+                      <div>
+                        <div className="text-white font-medium">{cliente._id}</div>
+                        <div className="text-green-300 text-sm">{cliente.cantidad_pedidos} pedidos</div>
+                      </div>
+                      <div className="text-green-400 font-bold">
+                        {formatCurrency(cliente.total_gastado)}
                       </div>
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+
+            {/* Estilos Musicales */}
+            <div className="bg-gray-900 rounded-2xl p-6 border border-cyan-500/30 shadow-2xl">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+                <span className="mr-3">🎶</span>
+                <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                  Estilos Musicales Más Populares
+                </span>
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {stats.ventas_por_estilo?.slice(0, 9).map((item, index) => {
+                  const colors = [
+                    'border-cyan-500 bg-cyan-500/10',
+                    'border-purple-500 bg-purple-500/10',
+                    'border-pink-500 bg-pink-500/10',
+                    'border-green-500 bg-green-500/10',
+                    'border-yellow-500 bg-yellow-500/10',
+                    'border-red-500 bg-red-500/10',
+                    'border-indigo-500 bg-indigo-500/10',
+                    'border-orange-500 bg-orange-500/10',
+                    'border-teal-500 bg-teal-500/10'
+                  ];
+                  
+                  return (
+                    <div key={index} className={`p-4 rounded-lg border ${colors[index]} shadow-lg hover:scale-105 transition-transform duration-200`}>
+                      <div className="text-white font-medium text-sm truncate mb-1">{item._id}</div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-xs">{item.count} ventas</span>
+                        <span className="text-white font-bold text-sm">{formatCurrency(item.total_valor)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
