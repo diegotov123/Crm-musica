@@ -342,6 +342,122 @@ class VentasMusicAPITester:
             self.log_test("Download Audio", False, f"Error: {str(e)}")
             return False
 
+    def test_download_audio_query_token(self):
+        """Test downloading audio with token in query parameter (CRITICAL TEST)"""
+        if not self.token or not self.test_venta_id:
+            self.log_test("Download Audio (Query Token)", False, "No token or venta ID available")
+            return False
+            
+        try:
+            # Test with query parameter token (no Authorization header)
+            url = f"{self.base_url}/api/ventas/{self.test_venta_id}/download-audio?token={self.token}"
+            
+            response = requests.get(url, timeout=30)
+            
+            success = response.status_code == 200
+            details = f"Status: {response.status_code}"
+            
+            if success:
+                content_type = response.headers.get('content-type', '')
+                content_disposition = response.headers.get('content-disposition', '')
+                details += f", Content-Type: {content_type}"
+                details += f", Content-Disposition: {content_disposition}"
+                details += f", Content-Length: {len(response.content)} bytes"
+                
+                # Check if proper download headers are present
+                if 'audio' in content_type and 'attachment' in content_disposition:
+                    details += " ✅ PROPER DOWNLOAD HEADERS"
+                else:
+                    details += " ⚠️ Missing proper download headers"
+            else:
+                try:
+                    error_data = response.json()
+                    details += f", Error: {error_data}"
+                except:
+                    details += f", Response: {response.text[:200]}"
+                    
+            self.log_test("Download Audio (Query Token)", success, details)
+            return success
+        except Exception as e:
+            self.log_test("Download Audio (Query Token)", False, f"Error: {str(e)}")
+            return False
+
+    def test_diegoto_download(self):
+        """Test downloading DIEGOTO audio specifically (CRITICAL TEST)"""
+        if not self.token:
+            self.log_test("DIEGOTO Download", False, "No token available")
+            return False
+            
+        try:
+            # First get all ventas to find DIEGOTO
+            headers = {
+                'Authorization': f'Bearer {self.token}',
+                'Content-Type': 'application/json'
+            }
+            response = requests.get(f"{self.base_url}/api/ventas", headers=headers, timeout=10)
+            
+            if response.status_code != 200:
+                self.log_test("DIEGOTO Download", False, f"Failed to get ventas: {response.status_code}")
+                return False
+            
+            ventas = response.json()
+            diegoto_venta = None
+            
+            # Look for DIEGOTO record
+            for venta in ventas:
+                if 'DIEGOTO' in venta.get('nombre', '').upper():
+                    diegoto_venta = venta
+                    break
+            
+            if not diegoto_venta:
+                self.log_test("DIEGOTO Download", False, "DIEGOTO record not found in ventas")
+                return False
+            
+            if not diegoto_venta.get('audio_filename'):
+                self.log_test("DIEGOTO Download", False, "DIEGOTO has no audio file")
+                return False
+            
+            # Test download with query token (CRITICAL TEST)
+            diegoto_id = diegoto_venta['id']
+            download_url = f"{self.base_url}/api/ventas/{diegoto_id}/download-audio?token={self.token}"
+            
+            print(f"   🎯 DIEGOTO ID: {diegoto_id}")
+            print(f"   📁 Audio file: {diegoto_venta.get('audio_filename')}")
+            print(f"   🔗 Download URL: {download_url}")
+            
+            response = requests.get(download_url, timeout=30)
+            success = response.status_code == 200
+            details = f"Status: {response.status_code}"
+            
+            if success:
+                content_type = response.headers.get('content-type', '')
+                content_disposition = response.headers.get('content-disposition', '')
+                content_length = response.headers.get('content-length', 'Unknown')
+                
+                details += f", Content-Type: {content_type}"
+                details += f", Content-Disposition: {content_disposition}"
+                details += f", Size: {content_length} bytes"
+                
+                # Check if it's the expected DIEGOTO file
+                if 'DIEGOTO' in content_disposition and '.mp3' in content_disposition:
+                    details += " ✅ DIEGOTO MP3 DOWNLOAD SUCCESS"
+                    success = True
+                else:
+                    details += f" ⚠️ Unexpected filename: {content_disposition}"
+            else:
+                try:
+                    error_data = response.json()
+                    details += f", Error: {error_data}"
+                except:
+                    details += f", Response: {response.text[:200]}"
+                    
+            self.log_test("DIEGOTO Download", success, details)
+            return success
+            
+        except Exception as e:
+            self.log_test("DIEGOTO Download", False, f"Error: {str(e)}")
+            return False
+
     def test_delete_audio(self):
         """Test deleting audio file from a venta"""
         if not self.token or not self.test_venta_id:
