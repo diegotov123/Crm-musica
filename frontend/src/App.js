@@ -760,6 +760,42 @@ function App() {
                   </div>
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Archivo de Audio
+                  </label>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="file"
+                      accept="audio/*,.mp3,.wav,.m4a,.ogg,.flac,.aac"
+                      onChange={(e) => setSelectedAudioFile(e.target.files[0])}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    />
+                    {selectedAudioFile && (
+                      <span className="text-sm text-green-600">
+                        ✓ {selectedAudioFile.name}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Formatos soportados: MP3, WAV, M4A, OGG, FLAC, AAC
+                  </p>
+                  {editingVenta && editingVenta.audio_filename && (
+                    <div className="mt-2 p-2 bg-blue-50 rounded-lg">
+                      <p className="text-sm text-blue-700">
+                        📁 Archivo actual: {editingVenta.audio_filename}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => downloadAudio(editingVenta.id, editingVenta.nombre)}
+                        className="text-blue-600 hover:text-blue-800 text-sm mt-1"
+                      >
+                        🎵 Descargar archivo actual
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex justify-end space-x-4 mt-6">
                   <button
                     type="button"
