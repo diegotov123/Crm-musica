@@ -133,6 +133,13 @@ function App() {
       });
 
       if (response.ok) {
+        const ventaData = await response.json();
+        
+        // If there's an audio file to upload
+        if (selectedAudioFile) {
+          await uploadAudioFile(ventaData.id);
+        }
+        
         fetchVentas();
         fetchStats();
         resetForm();
@@ -145,6 +152,81 @@ function App() {
       alert('Error de conexión');
     }
     setLoading(false);
+  };
+
+  const uploadAudioFile = async (ventaId) => {
+    if (!selectedAudioFile) return;
+    
+    setUploadingAudio(true);
+    const formData = new FormData();
+    formData.append('audio_file', selectedAudioFile);
+
+    try {
+      const response = await fetch(`${API_BASE}/api/ventas/${ventaId}/upload-audio`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (response.ok) {
+        console.log('Audio uploaded successfully');
+      } else {
+        console.error('Error uploading audio');
+      }
+    } catch (error) {
+      console.error('Error uploading audio:', error);
+    }
+    setUploadingAudio(false);
+  };
+
+  const downloadAudio = async (ventaId, nombreCliente) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/ventas/${ventaId}/download-audio`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${nombreCliente}_audio`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('No hay archivo de audio para descargar');
+      }
+    } catch (error) {
+      alert('Error al descargar el audio');
+    }
+  };
+
+  const deleteAudio = async (ventaId) => {
+    if (!window.confirm('¿Está seguro de eliminar el archivo de audio?')) return;
+
+    try {
+      const response = await fetch(`${API_BASE}/api/ventas/${ventaId}/audio`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        fetchVentas();
+        alert('Archivo de audio eliminado');
+      } else {
+        alert('Error al eliminar el archivo de audio');
+      }
+    } catch (error) {
+      alert('Error al eliminar el archivo');
+    }
   };
 
   const handleDeleteVenta = async (id) => {
