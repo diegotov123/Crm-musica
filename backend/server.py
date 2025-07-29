@@ -63,6 +63,7 @@ class VentaModel(BaseModel):
     audio_filename: str = ""
     audio_original_name: str = ""
     audio_size: int = 0
+    confirmacion_pago_imagen: str = ""
 
 class VentaResponse(BaseModel):
     id: str
@@ -79,6 +80,7 @@ class VentaResponse(BaseModel):
     audio_filename: str
     audio_original_name: str = ""
     audio_size: int = 0
+    confirmacion_pago_imagen: str = ""
 
 # Initialize default user
 def init_default_user():
