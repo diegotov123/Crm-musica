@@ -331,3 +331,74 @@ code {
     min-width: 30px;
   }
 }
+
+/* Notification animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+.notification-progress {
+  animation: progress 5s linear;
+}
+
+.notification-card {
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(0, 188, 212, 0.2);
+}
+
+.notification-card:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease;
+}
+
+/* Auto-complete dropdown for clientes antiguos */
+.cliente-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(17, 24, 39, 0.95);
+  border: 1px solid rgba(0, 188, 212, 0.3);
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.cliente-dropdown-item {
+  padding: 12px;
+  border-bottom: 1px solid rgba(0, 188, 212, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cliente-dropdown-item:hover {
+  background: rgba(0, 188, 212, 0.1);
+}
+
+.cliente-dropdown-item:last-child {
+  border-bottom: none;
+}
