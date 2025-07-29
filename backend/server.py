@@ -91,21 +91,35 @@ def init_default_user():
 
 # Fix data integrity
 def fix_data_integrity():
-    """Fix any records with null or missing IDs"""
+    """Fix any records with null or missing IDs and audio_filename field"""
     try:
         # Find records with null or missing id
         null_id_records = ventas_collection.find({"$or": [{"id": None}, {"id": {"$exists": False}}]})
-        count = 0
+        count_ids = 0
         for record in null_id_records:
             new_id = str(uuid.uuid4())
             ventas_collection.update_one(
                 {"_id": record["_id"]}, 
                 {"$set": {"id": new_id}}
             )
-            count += 1
+            count_ids += 1
         
-        if count > 0:
-            print(f"Fixed {count} records with null/missing IDs")
+        if count_ids > 0:
+            print(f"Fixed {count_ids} records with null/missing IDs")
+        
+        # Find records with missing audio_filename field  
+        missing_audio_records = ventas_collection.find({"audio_filename": {"$exists": False}})
+        count_audio = 0
+        for record in missing_audio_records:
+            ventas_collection.update_one(
+                {"_id": record["_id"]}, 
+                {"$set": {"audio_filename": ""}}
+            )
+            count_audio += 1
+        
+        if count_audio > 0:
+            print(f"Fixed {count_audio} records with missing audio_filename field")
+            
     except Exception as e:
         print(f"Error fixing data integrity: {e}")
 
