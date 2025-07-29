@@ -252,32 +252,47 @@ function App() {
   };
 
   const handleDeleteVenta = async (id) => {
-    if (!window.confirm('¿Está seguro de eliminar esta venta? Esta acción también eliminará el archivo de audio asociado y no se puede deshacer.')) return;
+    const ventaName = ventas.find(v => v.id === id)?.nombre || 'esta venta';
+    
+    if (!window.confirm(`¿Eliminar "${ventaName}"?\n\nEsta acción eliminará la venta y su archivo de audio (si existe) y no se puede deshacer.`)) {
+      return;
+    }
 
     try {
+      console.log('🗑️ Eliminando venta:', id);
+      
       const response = await fetch(`${API_BASE}/api/ventas/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
 
       if (response.ok) {
         const result = await response.json();
-        fetchVentas();
-        fetchStats();
-        if (result.audio_deleted) {
-          alert('✅ Venta y archivo de audio eliminados exitosamente');
-        } else {
-          alert('✅ Venta eliminada exitosamente');
-        }
+        console.log('✅ Venta eliminada:', result);
+        
+        // Actualizar datos
+        await fetchVentas();
+        await fetchStats();
+        
+        // Mensaje de confirmación
+        const message = result.audio_deleted 
+          ? `✅ "${ventaName}" eliminada (incluido archivo de audio)`
+          : `✅ "${ventaName}" eliminada exitosamente`;
+        
+        alert(message);
+        
       } else {
-        const errorText = await response.text();
-        alert(`❌ Error al eliminar la venta: ${errorText}`);
+        const errorData = await response.text();
+        console.error('❌ Error al eliminar:', response.status, errorData);
+        alert(`❌ Error al eliminar la venta (${response.status}). Intenta de nuevo.`);
       }
+      
     } catch (error) {
-      console.error('Error al eliminar venta:', error);
-      alert('❌ Error de conexión al eliminar la venta');
+      console.error('❌ Error de conexión al eliminar:', error);
+      alert('❌ Error de conexión. Verifica tu internet e intenta de nuevo.');
     }
   };
 
