@@ -197,36 +197,10 @@ function App() {
     setUploadingAudio(false);
   };
 
-  const downloadAudio = async (ventaId, nombreCliente, estilo) => {
-    try {
-      console.log('🎵 Descarga iniciada para:', nombreCliente);
-      
-      // Método universal - crear enlace directo que funciona en todos los dispositivos
-      const downloadUrl = `${API_BASE}/api/ventas/${ventaId}/download-mobile?token=${encodeURIComponent(token)}`;
-      
-      // Crear enlace temporal y hacer clic
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = `${nombreCliente.replace(/[^a-zA-Z0-9]/g, '_')}_${estilo.replace(/[^a-zA-Z0-9]/g, '_')}.mp3`;
-      link.target = '_blank';
-      link.style.display = 'none';
-      
-      // Agregar al DOM, hacer clic y remover
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => {
-        if (document.body.contains(link)) {
-          document.body.removeChild(link);
-        }
-      }, 1000);
-      
-      // Mostrar confirmación
-      alert(`✅ Descarga iniciada: ${nombreCliente} - ${estilo}.mp3`);
-      
-    } catch (error) {
-      console.error('Error en descarga:', error);
-      alert('❌ Error al descargar el archivo');
-    }
+  const downloadAudio = (ventaId, nombreCliente, estilo) => {
+    // Método más simple posible - solo abrir URL directa
+    const url = `${API_BASE}/api/ventas/${ventaId}/download-mobile?token=${token}`;
+    window.location.href = url;
   };
 
   const deleteAudio = async (ventaId) => {
