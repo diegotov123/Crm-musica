@@ -81,6 +81,26 @@ def init_default_user():
         })
         print("Default user created successfully")
 
+# Fix data integrity
+def fix_data_integrity():
+    """Fix any records with null or missing IDs"""
+    try:
+        # Find records with null or missing id
+        null_id_records = ventas_collection.find({"$or": [{"id": None}, {"id": {"$exists": False}}]})
+        count = 0
+        for record in null_id_records:
+            new_id = str(uuid.uuid4())
+            ventas_collection.update_one(
+                {"_id": record["_id"]}, 
+                {"$set": {"id": new_id}}
+            )
+            count += 1
+        
+        if count > 0:
+            print(f"Fixed {count} records with null/missing IDs")
+    except Exception as e:
+        print(f"Error fixing data integrity: {e}")
+
 # JWT functions
 def create_access_token(data: dict):
     to_encode = data.copy()
