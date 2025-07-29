@@ -515,12 +515,22 @@ class VentasMusicAPITester:
         # Protected endpoint tests
         print("\n📊 Protected Endpoint Tests:")
         self.test_get_ventas()
+        self.test_ventas_include_audio_field()
         self.test_get_stats()
         
         # CRUD operations tests
         print("\n🔄 CRUD Operations Tests:")
         self.test_create_venta()
         self.test_update_venta()
+        
+        # Audio functionality tests
+        print("\n🎵 Audio Functionality Tests:")
+        self.test_upload_audio()
+        self.test_download_audio()
+        self.test_delete_audio()
+        
+        # Cleanup
+        print("\n🧹 Cleanup Tests:")
         self.test_delete_venta()
         
         # Final results
