@@ -762,11 +762,13 @@ class VentasMusicAPITester:
         self.test_upload_audio()
         self.test_download_audio()
         self.test_download_audio_query_token()  # CRITICAL TEST
+        self.test_download_mobile_endpoint()    # NEW MOBILE TEST
         self.test_delete_audio()
         
         # CRITICAL TEST - DIEGOTO download
         print("\n🎯 CRITICAL TEST - DIEGOTO Download:")
         self.test_diegoto_download()
+        self.test_diegoto_mobile_download()     # NEW DIEGOTO MOBILE TEST
         
         # Cleanup
         print("\n🧹 Cleanup Tests:")
