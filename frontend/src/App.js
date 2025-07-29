@@ -199,78 +199,25 @@ function App() {
     try {
       console.log('Iniciando descarga de audio para venta:', ventaId);
       
-      // Create direct download link approach
-      const downloadUrl = `${API_BASE}/api/ventas/${ventaId}/download-audio`;
+      // Direct URL approach with token in query parameter
+      const downloadUrl = `${API_BASE}/api/ventas/${ventaId}/download-audio?token=${encodeURIComponent(token)}`;
       
-      // Create a form and submit it to trigger download
-      const form = document.createElement('form');
-      form.method = 'GET';
-      form.action = downloadUrl;
-      form.target = '_blank';
-      form.style.display = 'none';
+      // Create a direct link and click it
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `${nombreCliente.replace(/[^a-zA-Z0-9]/g, '_')}_${estilo.replace(/[^a-zA-Z0-9]/g, '_')}.mp3`;
+      link.target = '_blank';
+      link.style.display = 'none';
       
-      // Add authorization as a parameter (we'll modify backend to accept token as query param)
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'token';
-      input.value = token;
-      form.appendChild(input);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
-      
-      // Also try the fetch approach as backup
-      const response = await fetch(downloadUrl, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'audio/mpeg,audio/*,*/*'
-        }
-      });
-
-      if (response.ok) {
-        const contentDisposition = response.headers.get('content-disposition');
-        const filename = contentDisposition 
-          ? contentDisposition.match(/filename="([^"]+)"/)?.[1] 
-          : `${nombreCliente.replace(/[^a-zA-Z0-9]/g, '_')}_${estilo.replace(/[^a-zA-Z0-9]/g, '_')}.mp3`;
-
-        const blob = await response.blob();
-        
-        if (blob.size === 0) {
-          alert('❌ El archivo de audio está vacío');
-          return;
-        }
-
-        // Force download using URL.createObjectURL
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        
-        // Trigger click immediately without adding to DOM
-        a.click();
-        
-        // Clean up
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-        
-        alert(`✅ Descarga iniciada: ${filename}`);
-      } else {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
+      alert(`🎵 Descarga iniciada: ${nombreCliente} - ${estilo}`);
       
     } catch (error) {
       console.error('Error en downloadAudio:', error);
-      
-      // Fallback: direct link approach
-      const fallbackUrl = `${API_BASE}/api/ventas/${ventaId}/download-audio?token=${encodeURIComponent(token)}`;
-      const link = document.createElement('a');
-      link.href = fallbackUrl;
-      link.download = `${nombreCliente}_${estilo}.mp3`;
-      link.target = '_blank';
-      link.click();
-      
-      alert('⚠️ Iniciando descarga alternativa...');
+      alert('❌ Error al descargar el archivo de audio');
     }
   };
 
