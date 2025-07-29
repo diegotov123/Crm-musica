@@ -308,15 +308,49 @@ async def download_audio(venta_id: str, current_user: str = Depends(verify_token
         raise HTTPException(status_code=404, detail="Audio file not found on disk")
     
     # Create a clean filename for download - always as MP3
-    cliente_name = venta.get('nombre', 'cliente').replace(' ', '_').replace('/', '_')
-    estilo = venta.get('estilo', 'cancion').replace(' ', '_').replace('/', '_')
-    download_filename = f"{cliente_name}_{estilo}.mp3"
-    
-    return FileResponse(
-        path=file_path,
-        filename=download_filename,
-        media_type='audio/mpeg'
-    )
+    try:
+        cliente_name = venta.get('nombre', 'cliente').strip()
+        estilo = venta.get('estilo', 'cancion').strip()
+        
+        # Clean the filename by removing special characters
+        import re
+        cliente_clean = re.sub(r'[^\w\s-]', '', cliente_name).strip()
+        cliente_clean = re.sub(r'[-\s]+', '_', cliente_clean)
+        
+        estilo_clean = re.sub(r'[^\w\s-]', '', estilo).strip()
+        estilo_clean = re.sub(r'[-\s]+', '_', estilo_clean)
+        
+        download_filename = f"{cliente_clean}_{estilo_clean}.mp3"
+        
+        # Ensure filename is not empty
+        if not cliente_clean or cliente_clean == '_':
+            download_filename = f"audio_venta_{venta_id[:8]}.mp3"
+        
+        print(f"Downloading audio: {audio_filename} as {download_filename}")
+        
+        return FileResponse(
+            path=file_path,
+            filename=download_filename,
+            media_type='audio/mpeg',
+            headers={
+                "Content-Disposition": f'attachment; filename="{download_filename}"',
+                "Content-Type": "audio/mpeg",
+                "Cache-Control": "no-cache"
+            }
+        )
+    except Exception as e:
+        print(f"Error creating download filename: {e}")
+        # Fallback filename
+        download_filename = f"audio_venta_{venta_id[:8]}.mp3"
+        return FileResponse(
+            path=file_path,
+            filename=download_filename,
+            media_type='audio/mpeg',
+            headers={
+                "Content-Disposition": f'attachment; filename="{download_filename}"',
+                "Content-Type": "audio/mpeg"
+            }
+        )
 
 @app.delete("/api/ventas/{venta_id}/audio")
 async def delete_audio(venta_id: str, current_user: str = Depends(verify_token)):
