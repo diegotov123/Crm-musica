@@ -201,47 +201,77 @@ function App() {
     try {
       console.log('Iniciando descarga de audio para venta:', ventaId);
       
-      const response = await fetch(`${API_BASE}/api/ventas/${ventaId}/download-audio`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'audio/mpeg,audio/*,*/*'
-        }
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
+      // Detectar si es un dispositivo móvil
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // Enfoque para móviles - abrir directamente la URL
+        const downloadUrl = `${API_BASE}/api/ventas/${ventaId}/download-audio`;
         
-        if (blob.size === 0) {
-          alert('❌ El archivo de audio está vacío');
-          return;
-        }
-
-        // Create download filename
-        const cleanName = nombreCliente.replace(/[^a-zA-Z0-9]/g, '_');
-        const cleanEstilo = estilo.replace(/[^a-zA-Z0-9]/g, '_');
-        const filename = `${cleanName}_${cleanEstilo}.mp3`;
-
-        // Create download link
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
+        // Crear un formulario temporal para enviar la autorización
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = downloadUrl;
+        form.target = '_blank';
+        form.style.display = 'none';
         
-        // Cleanup
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        // Agregar el token como campo oculto
+        const tokenInput = document.createElement('input');
+        tokenInput.type = 'hidden';
+        tokenInput.name = 'mobile_token';
+        tokenInput.value = token;
+        form.appendChild(tokenInput);
         
-        alert(`✅ Audio descargado: ${filename}`);
-      } else if (response.status === 404) {
-        alert('❌ No se encontró el archivo de audio para descargar');
-      } else if (response.status === 401) {
-        alert('❌ Error de autenticación. Por favor, vuelve a iniciar sesión.');
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+        
+        alert(`📱 Descarga iniciada en móvil: ${nombreCliente} - ${estilo}.mp3`);
+        
       } else {
-        const errorText = await response.text();
-        alert(`❌ Error al descargar: ${response.status} - ${errorText}`);
+        // Enfoque para desktop
+        const response = await fetch(`${API_BASE}/api/ventas/${ventaId}/download-audio`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'audio/mpeg,audio/*,*/*'
+          }
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          
+          if (blob.size === 0) {
+            alert('❌ El archivo de audio está vacío');
+            return;
+          }
+
+          // Create download filename
+          const cleanName = nombreCliente.replace(/[^a-zA-Z0-9]/g, '_');
+          const cleanEstilo = estilo.replace(/[^a-zA-Z0-9]/g, '_');
+          const filename = `${cleanName}_${cleanEstilo}.mp3`;
+
+          // Create download link
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          
+          // Cleanup
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          
+          alert(`💻 Audio descargado: ${filename}`);
+        } else if (response.status === 404) {
+          alert('❌ No se encontró el archivo de audio para descargar');
+        } else if (response.status === 401) {
+          alert('❌ Error de autenticación. Por favor, vuelve a iniciar sesión.');
+        } else {
+          const errorText = await response.text();
+          alert(`❌ Error al descargar: ${response.status} - ${errorText}`);
+        }
       }
       
     } catch (error) {
