@@ -713,6 +713,33 @@ async def delete_venta(venta_id: str, current_user: str = Depends(verify_token))
         print(f"❌ Unexpected error in delete: {e}")
         raise HTTPException(status_code=500, detail=f"Error deleting venta: {str(e)}")
 
+@app.get("/api/clientes-antiguos")
+async def get_clientes_antiguos(current_user: str = Depends(verify_token)):
+    """Get list of previous clients for autocomplete"""
+    try:
+        # Get unique clients with their most recent data
+        pipeline = [
+            {
+                "$group": {
+                    "_id": "$celular",
+                    "nombre": {"$last": "$nombre"},
+                    "celular": {"$last": "$celular"},
+                    "paquete": {"$last": "$paquete"},
+                    "estilo": {"$last": "$estilo"},
+                    "last_purchase": {"$max": "$fecha"},
+                    "total_purchases": {"$sum": 1}
+                }
+            },
+            {"$sort": {"last_purchase": -1}},
+            {"$limit": 50}
+        ]
+        
+        clientes = list(ventas_collection.aggregate(pipeline))
+        return clientes
+    except Exception as e:
+        print(f"Error getting clientes antiguos: {e}")
+        raise HTTPException(status_code=500, detail="Error retrieving clients")
+
 @app.get("/api/stats")
 async def get_stats(current_user: str = Depends(verify_token)):
     total_ventas = ventas_collection.count_documents({})
@@ -749,19 +776,35 @@ async def get_stats(current_user: str = Depends(verify_token)):
     ]
     ingresos_por_dia = list(ventas_collection.aggregate(pipeline_ingresos_dia))
     
-    # Top clientes
+    # Top clientes por nombre
     pipeline_clientes = [
         {
             "$group": {
                 "_id": "$nombre",
                 "total_gastado": {"$sum": "$valor"},
-                "cantidad_pedidos": {"$sum": 1}
+                "cantidad_pedidos": {"$sum": 1},
+                "celular": {"$last": "$celular"}
             }
         },
         {"$sort": {"total_gastado": -1}},
         {"$limit": 5}
     ]
     top_clientes = list(ventas_collection.aggregate(pipeline_clientes))
+    
+    # Top clientes por teléfono
+    pipeline_telefono = [
+        {
+            "$group": {
+                "_id": "$celular",
+                "total_gastado": {"$sum": "$valor"},
+                "cantidad_pedidos": {"$sum": 1},
+                "nombre": {"$last": "$nombre"}
+            }
+        },
+        {"$sort": {"total_gastado": -1}},
+        {"$limit": 5}
+    ]
+    top_clientes_telefono = list(ventas_collection.aggregate(pipeline_telefono))
     
     # Ingresos por mes
     pipeline_mes = [
@@ -791,6 +834,7 @@ async def get_stats(current_user: str = Depends(verify_token)):
         "ventas_por_estilo": ventas_por_estilo,
         "ingresos_por_dia": ingresos_por_dia,
         "top_clientes": top_clientes,
+        "top_clientes_telefono": top_clientes_telefono,
         "ingresos_por_mes": ingresos_por_mes
     }
 
