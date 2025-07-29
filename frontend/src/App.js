@@ -267,9 +267,11 @@ function App() {
       estado: 'Pagada y en producción',
       texto_cancion: '',
       observacion: '',
-      link_descarga: ''
+      link_descarga: '',
+      audio_filename: ''
     });
     setEditingVenta(null);
+    setSelectedAudioFile(null);
   };
 
   const filteredVentas = ventas.filter(venta => {
