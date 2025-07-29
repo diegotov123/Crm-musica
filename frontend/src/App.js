@@ -46,6 +46,7 @@ function App() {
       setIsLoggedIn(true);
       fetchVentas();
       fetchStats();
+      loadClientesAntiguos();
     }
   }, [token, sortOrder, sortBy]);
 
