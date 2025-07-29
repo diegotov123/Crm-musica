@@ -160,16 +160,18 @@ def verify_token(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 def verify_token_flexible(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    token_query: Optional[str] = Query(None, alias="token")
+    token_query: Optional[str] = Query(None, alias="token"),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ):
-    """Flexible token verification that allows optional authentication for downloads"""
+    """Flexible token verification that allows token from query parameter or header"""
     token = None
     
-    if credentials:
-        token = credentials.credentials
-    elif token_query:
+    # Check query parameter first
+    if token_query:
         token = token_query
+    # Then check Authorization header
+    elif credentials:
+        token = credentials.credentials
     
     if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No token provided")
@@ -180,7 +182,8 @@ def verify_token_flexible(
         if username is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
         return username
-    except jwt.PyJWTError:
+    except jwt.PyJWTError as e:
+        print(f"JWT Error: {e}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 # Import Excel data
