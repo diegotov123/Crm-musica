@@ -305,7 +305,7 @@ function App() {
           <div className="absolute bottom-1/4 left-1/3 w-32 h-32 bg-pink-500/10 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
         </div>
 
-        <div className="relative z-10 bg-gray-900/80 backdrop-filter backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-96 max-w-md border border-cyan-500/30 neon-border">
+        <div className="relative z-10 bg-gray-900/80 backdrop-filter backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-96 max-w-md border border-cyan-500/30 neon-border login-card">
           <div className="text-center mb-8">
             <div className="mb-4">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-2 text-glow">
