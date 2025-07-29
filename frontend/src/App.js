@@ -160,11 +160,23 @@ function App() {
         // If there's an audio file to upload
         if (selectedAudioFile) {
           await uploadAudioFile(ventaData.id);
+          addNotification(`🎵 Nueva canción subida para ${ventaData.nombre} (${ventaData.celular})`, 'success');
         }
         
         // If there's an image file to upload
         if (selectedImageFile) {
           await uploadImageFile(ventaData.id);
+          addNotification(`🖼️ Imagen de confirmación de pago subida para ${ventaData.nombre}`, 'info');
+        }
+        
+        // Check if estado changed to "Entregado por Diegoto"
+        if (editingVenta && editingVenta.estado !== ventaData.estado && ventaData.estado === 'Entregado por Diegoto') {
+          addNotification(`🎤 Diego acaba de actualizar la canción con el ${ventaData.celular}`, 'delivery');
+        }
+        
+        // General success notification
+        if (!editingVenta) {
+          addNotification(`✅ Nueva venta creada para ${ventaData.nombre}`, 'success');
         }
         
         fetchVentas();
