@@ -205,31 +205,16 @@ function App() {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
       if (isMobile) {
-        // Enfoque para móviles - abrir directamente la URL
-        const downloadUrl = `${API_BASE}/api/ventas/${ventaId}/download-audio`;
+        // Enfoque específico para móviles - URL directa con token
+        const downloadUrl = `${API_BASE}/api/ventas/${ventaId}/download-mobile?token=${encodeURIComponent(token)}`;
         
-        // Crear un formulario temporal para enviar la autorización
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = downloadUrl;
-        form.target = '_blank';
-        form.style.display = 'none';
+        // Abrir en nueva pestaña para activar descarga
+        window.open(downloadUrl, '_blank');
         
-        // Agregar el token como campo oculto
-        const tokenInput = document.createElement('input');
-        tokenInput.type = 'hidden';
-        tokenInput.name = 'mobile_token';
-        tokenInput.value = token;
-        form.appendChild(tokenInput);
-        
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
-        
-        alert(`📱 Descarga iniciada en móvil: ${nombreCliente} - ${estilo}.mp3`);
+        alert(`📱 Descarga iniciada para móvil: ${nombreCliente} - ${estilo}`);
         
       } else {
-        // Enfoque para desktop
+        // Enfoque para desktop usando fetch
         const response = await fetch(`${API_BASE}/api/ventas/${ventaId}/download-audio`, {
           method: 'GET',
           headers: {
@@ -276,7 +261,15 @@ function App() {
       
     } catch (error) {
       console.error('Error en downloadAudio:', error);
-      alert('❌ Error de conexión al descargar el audio');
+      
+      // Fallback para cualquier dispositivo - enlace directo
+      try {
+        const fallbackUrl = `${API_BASE}/api/ventas/${ventaId}/download-mobile?token=${encodeURIComponent(token)}`;
+        window.open(fallbackUrl, '_blank');
+        alert('🔄 Reintentando descarga con método alternativo...');
+      } catch (fallbackError) {
+        alert('❌ Error de conexión al descargar el audio');
+      }
     }
   };
 
