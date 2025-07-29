@@ -382,6 +382,48 @@ class VentasMusicAPITester:
             self.log_test("Download Audio (Query Token)", False, f"Error: {str(e)}")
             return False
 
+    def test_download_mobile_endpoint(self):
+        """Test the new mobile-optimized download endpoint (CRITICAL TEST)"""
+        if not self.token or not self.test_venta_id:
+            self.log_test("Mobile Download Endpoint", False, "No token or venta ID available")
+            return False
+            
+        try:
+            # Test the new mobile endpoint with token in query parameter
+            mobile_url = f"{self.base_url}/api/ventas/{self.test_venta_id}/download-mobile?token={self.token}"
+            
+            response = requests.get(mobile_url, timeout=30)
+            success = response.status_code == 200
+            details = f"Status: {response.status_code}"
+            
+            if success:
+                content_type = response.headers.get('content-type', '')
+                content_disposition = response.headers.get('content-disposition', '')
+                content_length = response.headers.get('content-length', 'Unknown')
+                
+                details += f", Content-Type: {content_type}"
+                details += f", Content-Disposition: {content_disposition}"
+                details += f", Size: {content_length} bytes"
+                
+                # Check if it's using the mobile-optimized headers
+                if 'audio/mpeg' in content_type:
+                    details += " ✅ MOBILE AUDIO/MPEG HEADERS"
+                else:
+                    details += f" ⚠️ Unexpected content-type: {content_type}"
+            else:
+                try:
+                    error_data = response.json()
+                    details += f", Error: {error_data}"
+                except:
+                    details += f", Response: {response.text[:200]}"
+                    
+            self.log_test("Mobile Download Endpoint", success, details)
+            return success
+            
+        except Exception as e:
+            self.log_test("Mobile Download Endpoint", False, f"Error: {str(e)}")
+            return False
+
     def test_diegoto_download(self):
         """Test downloading DIEGOTO audio specifically (CRITICAL TEST)"""
         if not self.token:
@@ -456,6 +498,82 @@ class VentasMusicAPITester:
             
         except Exception as e:
             self.log_test("DIEGOTO Download", False, f"Error: {str(e)}")
+            return False
+
+    def test_diegoto_mobile_download(self):
+        """Test downloading DIEGOTO audio using mobile endpoint (CRITICAL TEST)"""
+        if not self.token:
+            self.log_test("DIEGOTO Mobile Download", False, "No token available")
+            return False
+            
+        try:
+            # First get all ventas to find DIEGOTO
+            headers = {
+                'Authorization': f'Bearer {self.token}',
+                'Content-Type': 'application/json'
+            }
+            response = requests.get(f"{self.base_url}/api/ventas", headers=headers, timeout=10)
+            
+            if response.status_code != 200:
+                self.log_test("DIEGOTO Mobile Download", False, f"Failed to get ventas: {response.status_code}")
+                return False
+            
+            ventas = response.json()
+            diegoto_venta = None
+            
+            # Look for DIEGOTO record
+            for venta in ventas:
+                if 'DIEGOTO' in venta.get('nombre', '').upper():
+                    diegoto_venta = venta
+                    break
+            
+            if not diegoto_venta:
+                self.log_test("DIEGOTO Mobile Download", False, "DIEGOTO record not found in ventas")
+                return False
+            
+            if not diegoto_venta.get('audio_filename'):
+                self.log_test("DIEGOTO Mobile Download", False, "DIEGOTO has no audio file")
+                return False
+            
+            # Test mobile download endpoint (CRITICAL TEST)
+            diegoto_id = diegoto_venta['id']
+            mobile_url = f"{self.base_url}/api/ventas/{diegoto_id}/download-mobile?token={self.token}"
+            
+            print(f"   🎯 DIEGOTO Mobile ID: {diegoto_id}")
+            print(f"   📁 Audio file: {diegoto_venta.get('audio_filename')}")
+            print(f"   📱 Mobile URL: {mobile_url}")
+            
+            response = requests.get(mobile_url, timeout=30)
+            success = response.status_code == 200
+            details = f"Status: {response.status_code}"
+            
+            if success:
+                content_type = response.headers.get('content-type', '')
+                content_disposition = response.headers.get('content-disposition', '')
+                content_length = response.headers.get('content-length', 'Unknown')
+                
+                details += f", Content-Type: {content_type}"
+                details += f", Content-Disposition: {content_disposition}"
+                details += f", Size: {content_length} bytes"
+                
+                # Check if it's using mobile-optimized headers
+                if 'audio/mpeg' in content_type and 'DIEGOTO' in content_disposition:
+                    details += " ✅ DIEGOTO MOBILE MP3 SUCCESS"
+                    success = True
+                else:
+                    details += f" ⚠️ Mobile headers issue - CT: {content_type}, CD: {content_disposition}"
+            else:
+                try:
+                    error_data = response.json()
+                    details += f", Error: {error_data}"
+                except:
+                    details += f", Response: {response.text[:200]}"
+                    
+            self.log_test("DIEGOTO Mobile Download", success, details)
+            return success
+            
+        except Exception as e:
+            self.log_test("DIEGOTO Mobile Download", False, f"Error: {str(e)}")
             return False
 
     def test_delete_audio(self):
