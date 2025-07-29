@@ -764,11 +764,11 @@ function App() {
                           {venta.audio_filename ? (
                             <div className="flex items-center space-x-2">
                               <button
-                                onClick={() => downloadAudio(venta.id, venta.nombre)}
+                                onClick={() => downloadAudio(venta.id, venta.nombre, venta.estilo)}
                                 className="text-blue-600 hover:text-blue-900 flex items-center"
-                                title="Descargar audio"
+                                title="Descargar audio como MP3"
                               >
-                                🎵 Descargar
+                                🎵 Descargar MP3
                               </button>
                               <button
                                 onClick={() => deleteAudio(venta.id)}
