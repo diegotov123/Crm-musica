@@ -79,27 +79,41 @@ function App() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
+    
+    console.log('Attempting login with:', loginData.username);
+    
     try {
       const response = await fetch(`${API_BASE}/api/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        body: JSON.stringify(loginData),
+        body: JSON.stringify({
+          username: loginData.username.trim(),
+          password: loginData.password.trim()
+        }),
       });
+
+      console.log('Login response status:', response.status);
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Login successful, setting token');
         setToken(data.access_token);
         localStorage.setItem('token', data.access_token);
         setIsLoggedIn(true);
       } else {
-        alert('Credenciales inválidas');
+        const errorData = await response.text();
+        console.error('Login failed:', response.status, errorData);
+        alert('Credenciales inválidas. Por favor verifica usuario y contraseña.');
       }
     } catch (error) {
-      alert('Error de conexión');
+      console.error('Login error:', error);
+      alert('Error de conexión. Por favor intenta de nuevo.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleLogout = () => {
