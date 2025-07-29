@@ -18,6 +18,8 @@ function App() {
   const [filterEstilo, setFilterEstilo] = useState('');
   const [sortOrder, setSortOrder] = useState('desc'); // Default to newest first
   const [sortBy, setSortBy] = useState('fecha');
+  const [notifications, setNotifications] = useState([]);
+  const [clientesAntiguos, setClientesAntiguos] = useState([]);
 
   const [ventaForm, setVentaForm] = useState({
     fecha: new Date().toISOString().split('T')[0],
