@@ -539,34 +539,52 @@ async def update_venta(venta_id: str, venta: VentaModel, current_user: str = Dep
 @app.delete("/api/ventas/{venta_id}")
 async def delete_venta(venta_id: str, current_user: str = Depends(verify_token)):
     try:
-        # First check if venta exists and get audio filename
+        print(f"🗑️ Delete request for venta: {venta_id}")
+        
+        # Check if venta exists
         venta = ventas_collection.find_one({"id": venta_id})
         if not venta:
+            print(f"❌ Venta not found: {venta_id}")
             raise HTTPException(status_code=404, detail="Venta not found")
         
-        # Delete associated audio file if exists
+        cliente_name = venta.get('nombre', 'Unknown')
+        print(f"🎯 Deleting venta for: {cliente_name}")
+        
+        # Delete audio file if exists
+        audio_deleted = False
         audio_filename = venta.get("audio_filename")
         if audio_filename:
             try:
                 file_path = os.path.join(UPLOAD_DIR, audio_filename)
                 if os.path.exists(file_path):
                     os.remove(file_path)
-                    print(f"Deleted audio file: {audio_filename}")
+                    audio_deleted = True
+                    print(f"🎵 Deleted audio file: {audio_filename}")
+                else:
+                    print(f"⚠️ Audio file not found on disk: {audio_filename}")
             except Exception as e:
-                print(f"Error deleting audio file: {e}")
-                # Continue with venta deletion even if audio file deletion fails
+                print(f"⚠️ Error deleting audio file: {e}")
+                # Continue with venta deletion even if audio deletion fails
         
-        # Delete the venta
+        # Delete the venta from database
         result = ventas_collection.delete_one({"id": venta_id})
         if result.deleted_count == 0:
-            raise HTTPException(status_code=404, detail="Venta not found")
+            print(f"❌ Venta deletion failed: {venta_id}")
+            raise HTTPException(status_code=404, detail="Failed to delete venta")
         
-        return {"message": "Venta deleted successfully", "audio_deleted": bool(audio_filename)}
+        print(f"✅ Successfully deleted venta: {cliente_name}")
+        
+        return {
+            "message": "Venta deleted successfully",
+            "cliente": cliente_name,
+            "audio_deleted": audio_deleted,
+            "venta_id": venta_id
+        }
     
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error in delete_venta: {e}")
+        print(f"❌ Unexpected error in delete: {e}")
         raise HTTPException(status_code=500, detail=f"Error deleting venta: {str(e)}")
 
 @app.get("/api/stats")
