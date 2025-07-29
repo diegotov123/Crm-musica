@@ -30,11 +30,14 @@ function App() {
     texto_cancion: '',
     observacion: '',
     link_descarga: '',
-    audio_filename: ''
+    audio_filename: '',
+    confirmacion_pago_imagen: ''
   });
 
   const [selectedAudioFile, setSelectedAudioFile] = useState(null);
   const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     if (token) {
