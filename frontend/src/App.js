@@ -725,9 +725,9 @@ function App() {
               </button>
             </div>
 
-            {/* Filters */}
+            {/* Filters and Sorting */}
             <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <input
                   type="text"
                   placeholder="Buscar por nombre, teléfono o estilo..."
@@ -753,6 +753,25 @@ function App() {
                   onChange={(e) => setFilterEstilo(e.target.value)}
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                 />
+
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="fecha">Ordenar por Fecha</option>
+                  <option value="nombre">Ordenar por Nombre</option>
+                  <option value="valor">Ordenar por Valor</option>
+                </select>
+
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="desc">Más Recientes Primero</option>
+                  <option value="asc">Más Antiguos Primero</option>
+                </select>
               </div>
             </div>
 
