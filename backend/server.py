@@ -331,7 +331,7 @@ async def upload_audio(
 
 @app.get("/api/ventas/{venta_id}/download-audio")
 async def download_audio(venta_id: str, current_user: str = Depends(verify_token_flexible)):
-    """Download audio file for a specific venta"""
+    """Download audio file for a specific venta - Browser-friendly version"""
     # Get venta with audio filename
     venta = ventas_collection.find_one({"id": venta_id})
     if not venta:
@@ -366,29 +366,19 @@ async def download_audio(venta_id: str, current_user: str = Depends(verify_token
         
         print(f"Downloading audio: {audio_filename} as {download_filename}")
         
-        # Use streaming response for better compatibility
-        def file_streamer():
-            with open(file_path, 'rb') as file:
-                while chunk := file.read(8192):
-                    yield chunk
-        
-        # Get file size for Content-Length header
-        file_size = os.path.getsize(file_path)
-        
-        headers = {
-            "Content-Disposition": f'attachment; filename="{download_filename}"',
-            "Content-Type": "audio/mpeg",
-            "Content-Length": str(file_size),
-            "Accept-Ranges": "bytes",
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-            "Pragma": "no-cache",
-            "Expires": "0"
-        }
-        
-        return StreamingResponse(
-            file_streamer(),
-            media_type="audio/mpeg",
-            headers=headers
+        # Use FileResponse for better browser compatibility
+        return FileResponse(
+            path=file_path,
+            filename=download_filename,
+            media_type='audio/mpeg',
+            headers={
+                "Content-Disposition": f'attachment; filename="{download_filename}"',
+                "Content-Type": "audio/mpeg",
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
+                "X-Content-Type-Options": "nosniff"
+            }
         )
         
     except Exception as e:
