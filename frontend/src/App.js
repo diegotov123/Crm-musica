@@ -181,7 +181,7 @@ function App() {
     setUploadingAudio(false);
   };
 
-  const downloadAudio = async (ventaId, nombreCliente) => {
+  const downloadAudio = async (ventaId, nombreCliente, estilo) => {
     try {
       const response = await fetch(`${API_BASE}/api/ventas/${ventaId}/download-audio`, {
         headers: {
@@ -194,11 +194,18 @@ function App() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${nombreCliente}_audio`;
+        
+        // Create a clean filename for download
+        const cleanName = nombreCliente.replace(/[^a-zA-Z0-9]/g, '_');
+        const cleanEstilo = estilo.replace(/[^a-zA-Z0-9]/g, '_');
+        a.download = `${cleanName}_${cleanEstilo}.mp3`;
+        
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        
+        alert('Audio descargado exitosamente como MP3');
       } else {
         alert('No hay archivo de audio para descargar');
       }
