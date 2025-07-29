@@ -460,10 +460,36 @@ async def update_venta(venta_id: str, venta: VentaModel, current_user: str = Dep
 
 @app.delete("/api/ventas/{venta_id}")
 async def delete_venta(venta_id: str, current_user: str = Depends(verify_token)):
-    result = ventas_collection.delete_one({"id": venta_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Venta not found")
-    return {"message": "Venta deleted successfully"}
+    try:
+        # First check if venta exists and get audio filename
+        venta = ventas_collection.find_one({"id": venta_id})
+        if not venta:
+            raise HTTPException(status_code=404, detail="Venta not found")
+        
+        # Delete associated audio file if exists
+        audio_filename = venta.get("audio_filename")
+        if audio_filename:
+            try:
+                file_path = os.path.join(UPLOAD_DIR, audio_filename)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    print(f"Deleted audio file: {audio_filename}")
+            except Exception as e:
+                print(f"Error deleting audio file: {e}")
+                # Continue with venta deletion even if audio file deletion fails
+        
+        # Delete the venta
+        result = ventas_collection.delete_one({"id": venta_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Venta not found")
+        
+        return {"message": "Venta deleted successfully", "audio_deleted": bool(audio_filename)}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error in delete_venta: {e}")
+        raise HTTPException(status_code=500, detail=f"Error deleting venta: {str(e)}")
 
 @app.get("/api/stats")
 async def get_stats(current_user: str = Depends(verify_token)):
