@@ -199,77 +199,33 @@ function App() {
 
   const downloadAudio = async (ventaId, nombreCliente, estilo) => {
     try {
-      console.log('Iniciando descarga de audio para venta:', ventaId);
+      console.log('🎵 Descarga iniciada para:', nombreCliente);
       
-      // Detectar si es un dispositivo móvil
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      // Método universal - crear enlace directo que funciona en todos los dispositivos
+      const downloadUrl = `${API_BASE}/api/ventas/${ventaId}/download-mobile?token=${encodeURIComponent(token)}`;
       
-      if (isMobile) {
-        // Enfoque específico para móviles - URL directa con token
-        const downloadUrl = `${API_BASE}/api/ventas/${ventaId}/download-mobile?token=${encodeURIComponent(token)}`;
-        
-        // Abrir en nueva pestaña para activar descarga
-        window.open(downloadUrl, '_blank');
-        
-        alert(`📱 Descarga iniciada para móvil: ${nombreCliente} - ${estilo}`);
-        
-      } else {
-        // Enfoque para desktop usando fetch
-        const response = await fetch(`${API_BASE}/api/ventas/${ventaId}/download-audio`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'audio/mpeg,audio/*,*/*'
-          }
-        });
-
-        if (response.ok) {
-          const blob = await response.blob();
-          
-          if (blob.size === 0) {
-            alert('❌ El archivo de audio está vacío');
-            return;
-          }
-
-          // Create download filename
-          const cleanName = nombreCliente.replace(/[^a-zA-Z0-9]/g, '_');
-          const cleanEstilo = estilo.replace(/[^a-zA-Z0-9]/g, '_');
-          const filename = `${cleanName}_${cleanEstilo}.mp3`;
-
-          // Create download link
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = filename;
-          document.body.appendChild(link);
-          link.click();
-          
-          // Cleanup
+      // Crear enlace temporal y hacer clic
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `${nombreCliente.replace(/[^a-zA-Z0-9]/g, '_')}_${estilo.replace(/[^a-zA-Z0-9]/g, '_')}.mp3`;
+      link.target = '_blank';
+      link.style.display = 'none';
+      
+      // Agregar al DOM, hacer clic y remover
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        if (document.body.contains(link)) {
           document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-          
-          alert(`💻 Audio descargado: ${filename}`);
-        } else if (response.status === 404) {
-          alert('❌ No se encontró el archivo de audio para descargar');
-        } else if (response.status === 401) {
-          alert('❌ Error de autenticación. Por favor, vuelve a iniciar sesión.');
-        } else {
-          const errorText = await response.text();
-          alert(`❌ Error al descargar: ${response.status} - ${errorText}`);
         }
-      }
+      }, 1000);
+      
+      // Mostrar confirmación
+      alert(`✅ Descarga iniciada: ${nombreCliente} - ${estilo}.mp3`);
       
     } catch (error) {
-      console.error('Error en downloadAudio:', error);
-      
-      // Fallback para cualquier dispositivo - enlace directo
-      try {
-        const fallbackUrl = `${API_BASE}/api/ventas/${ventaId}/download-mobile?token=${encodeURIComponent(token)}`;
-        window.open(fallbackUrl, '_blank');
-        alert('🔄 Reintentando descarga con método alternativo...');
-      } catch (fallbackError) {
-        alert('❌ Error de conexión al descargar el audio');
-      }
+      console.error('Error en descarga:', error);
+      alert('❌ Error al descargar el archivo');
     }
   };
 
