@@ -485,6 +485,8 @@ async def upload_excel(file: UploadFile = File(...), current_user: str = Depends
                     "observacion": str(row.iloc[8]) if not pd.isna(row.iloc[8]) else "",
                     "link_descarga": str(row.iloc[9]) if not pd.isna(row.iloc[9]) else "",
                     "audio_filename": "",  # Initially empty for imported data
+                    "audio_original_name": "",
+                    "audio_size": 0,
                     "created_at": datetime.now()
                 }
                 
