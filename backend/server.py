@@ -176,6 +176,7 @@ def import_excel_data():
 async def startup_event():
     init_default_user()
     import_excel_data()
+    fix_data_integrity()
 
 @app.get("/api/health")
 async def health():
