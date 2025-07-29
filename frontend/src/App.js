@@ -46,7 +46,7 @@ function App() {
 
   const fetchVentas = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/ventas`, {
+      const response = await fetch(`${API_BASE}/api/ventas?sort_order=${sortOrder}&sort_by=${sortBy}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
