@@ -183,34 +183,65 @@ function App() {
 
   const downloadAudio = async (ventaId, nombreCliente, estilo) => {
     try {
+      console.log('Iniciando descarga de audio para venta:', ventaId);
+      
       const response = await fetch(`${API_BASE}/api/ventas/${ventaId}/download-audio`, {
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'audio/mpeg,audio/*,*/*'
         }
       });
 
+      console.log('Respuesta de descarga:', response.status, response.statusText);
+
       if (response.ok) {
+        // Get the content-disposition header if present
+        const contentDisposition = response.headers.get('content-disposition');
+        let filename = `${nombreCliente}_${estilo}.mp3`;
+        
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (filenameMatch) {
+            filename = filenameMatch[1].replace(/['"]/g, '');
+          }
+        }
+
         const blob = await response.blob();
+        console.log('Blob creado, tamaño:', blob.size);
+        
+        if (blob.size === 0) {
+          alert('El archivo de audio está vacío');
+          return;
+        }
+
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        
-        // Create a clean filename for download
-        const cleanName = nombreCliente.replace(/[^a-zA-Z0-9]/g, '_');
-        const cleanEstilo = estilo.replace(/[^a-zA-Z0-9]/g, '_');
-        a.download = `${cleanName}_${cleanEstilo}.mp3`;
+        a.download = filename;
+        a.style.display = 'none';
         
         document.body.appendChild(a);
+        console.log('Iniciando descarga con nombre:', filename);
         a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
         
-        alert('Audio descargado exitosamente como MP3');
+        // Clean up
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        }, 100);
+        
+        alert(`Audio descargado exitosamente: ${filename}`);
+      } else if (response.status === 404) {
+        alert('No se encontró el archivo de audio para descargar');
       } else {
-        alert('No hay archivo de audio para descargar');
+        const errorText = await response.text();
+        console.error('Error en la descarga:', errorText);
+        alert('Error al descargar el audio: ' + errorText);
       }
     } catch (error) {
-      alert('Error al descargar el audio');
+      console.error('Error en downloadAudio:', error);
+      alert('Error de conexión al descargar el audio');
     }
   };
 
