@@ -806,10 +806,14 @@ function App() {
                   </button>
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || uploadingAudio}
                     className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50"
                   >
-                    {loading ? 'Guardando...' : (editingVenta ? 'Actualizar' : 'Crear')}
+                    {loading || uploadingAudio ? (
+                      uploadingAudio ? 'Subiendo audio...' : 'Guardando...'
+                    ) : (
+                      editingVenta ? 'Actualizar' : 'Crear'
+                    )}
                   </button>
                 </div>
               </form>
