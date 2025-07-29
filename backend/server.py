@@ -220,6 +220,103 @@ async def create_venta(venta: VentaModel, current_user: str = Depends(verify_tok
     ventas_collection.insert_one(venta_dict)
     return venta_dict
 
+@app.post("/api/ventas/{venta_id}/upload-audio")
+async def upload_audio(
+    venta_id: str,
+    audio_file: UploadFile = File(...),
+    current_user: str = Depends(verify_token)
+):
+    """Upload audio file for a specific venta"""
+    # Validate venta exists
+    venta = ventas_collection.find_one({"id": venta_id})
+    if not venta:
+        raise HTTPException(status_code=404, detail="Venta not found")
+    
+    # Validate file type (audio files)
+    allowed_extensions = ['.mp3', '.wav', '.m4a', '.ogg', '.flac', '.aac']
+    file_extension = os.path.splitext(audio_file.filename)[1].lower()
+    if file_extension not in allowed_extensions:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"File type not allowed. Allowed types: {', '.join(allowed_extensions)}"
+        )
+    
+    try:
+        # Generate unique filename
+        unique_filename = f"{venta_id}_{uuid.uuid4().hex}{file_extension}"
+        file_path = os.path.join(UPLOAD_DIR, unique_filename)
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(audio_file.file, buffer)
+        
+        # Update venta with audio filename
+        ventas_collection.update_one(
+            {"id": venta_id},
+            {"$set": {"audio_filename": unique_filename, "updated_at": datetime.now()}}
+        )
+        
+        return {
+            "message": "Audio file uploaded successfully",
+            "filename": unique_filename,
+            "original_filename": audio_file.filename
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
+
+@app.get("/api/ventas/{venta_id}/download-audio")
+async def download_audio(venta_id: str, current_user: str = Depends(verify_token)):
+    """Download audio file for a specific venta"""
+    # Get venta with audio filename
+    venta = ventas_collection.find_one({"id": venta_id})
+    if not venta:
+        raise HTTPException(status_code=404, detail="Venta not found")
+    
+    audio_filename = venta.get("audio_filename")
+    if not audio_filename:
+        raise HTTPException(status_code=404, detail="No audio file found for this venta")
+    
+    file_path = os.path.join(UPLOAD_DIR, audio_filename)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Audio file not found on disk")
+    
+    # Get original filename for download
+    original_name = f"{venta.get('nombre', 'audio')}_{venta.get('estilo', 'song')}{os.path.splitext(audio_filename)[1]}"
+    
+    return FileResponse(
+        path=file_path,
+        filename=original_name,
+        media_type='application/octet-stream'
+    )
+
+@app.delete("/api/ventas/{venta_id}/audio")
+async def delete_audio(venta_id: str, current_user: str = Depends(verify_token)):
+    """Delete audio file for a specific venta"""
+    venta = ventas_collection.find_one({"id": venta_id})
+    if not venta:
+        raise HTTPException(status_code=404, detail="Venta not found")
+    
+    audio_filename = venta.get("audio_filename")
+    if not audio_filename:
+        raise HTTPException(status_code=404, detail="No audio file found for this venta")
+    
+    try:
+        file_path = os.path.join(UPLOAD_DIR, audio_filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        
+        # Update venta to remove audio filename
+        ventas_collection.update_one(
+            {"id": venta_id},
+            {"$set": {"audio_filename": "", "updated_at": datetime.now()}}
+        )
+        
+        return {"message": "Audio file deleted successfully"}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting file: {str(e)}")
+
 @app.put("/api/ventas/{venta_id}", response_model=VentaResponse)
 async def update_venta(venta_id: str, venta: VentaModel, current_user: str = Depends(verify_token)):
     venta_dict = venta.dict()
