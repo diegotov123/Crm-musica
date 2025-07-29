@@ -330,7 +330,7 @@ async def upload_audio(
         raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
 
 @app.get("/api/ventas/{venta_id}/download-audio")
-async def download_audio(venta_id: str, current_user: str = Depends(verify_token)):
+async def download_audio(venta_id: str, current_user: str = Depends(verify_token_flexible)):
     """Download audio file for a specific venta"""
     # Get venta with audio filename
     venta = ventas_collection.find_one({"id": venta_id})
