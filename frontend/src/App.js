@@ -42,7 +42,7 @@ function App() {
       fetchVentas();
       fetchStats();
     }
-  }, [token]);
+  }, [token, sortOrder, sortBy]);
 
   const fetchVentas = async () => {
     try {
