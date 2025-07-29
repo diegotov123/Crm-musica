@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException, Depends, status, File, UploadFile
+from fastapi import FastAPI, HTTPException, Depends, status, File, UploadFile, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pymongo import MongoClient
 import os
 import jwt
@@ -12,6 +13,7 @@ import uuid
 from pydantic import BaseModel
 import tempfile
 import io
+import shutil
 
 # Initialize FastAPI app
 app = FastAPI()
