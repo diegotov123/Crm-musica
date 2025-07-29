@@ -349,6 +349,10 @@ function App() {
     }).format(amount);
   };
 
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('es-CO');
+  };
+
   const addNotification = (message, type = 'info') => {
     const notification = {
       id: Date.now(),
