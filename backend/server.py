@@ -1,75 +1,292 @@
-from fastapi import FastAPI, APIRouter
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+from fastapi import FastAPI, HTTPException, Depends, status, File, UploadFile
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.middleware.cors import CORSMiddleware
+from pymongo import MongoClient
 import os
-import logging
-from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List
+import jwt
+import bcrypt
+from datetime import datetime, timedelta
+import pandas as pd
+from typing import Optional, List
 import uuid
-from datetime import datetime
+from pydantic import BaseModel
+import tempfile
+import io
 
-
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
-
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
-
-# Create the main app without a prefix
+# Initialize FastAPI app
 app = FastAPI()
 
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
-
-
-# Define Models
-class StatusCheck(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
-
-class StatusCheckCreate(BaseModel):
-    client_name: str
-
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.dict()
-    status_obj = StatusCheck(**status_dict)
-    _ = await db.status_checks.insert_one(status_obj.dict())
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
-
-# Include the router in the main app
-app.include_router(api_router)
-
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# MongoDB connection
+MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+client = MongoClient(MONGO_URL)
+db = client['ventas_music_db']
+users_collection = db['users']
+ventas_collection = db['ventas']
 
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+# Security
+security = HTTPBearer()
+SECRET_KEY = "ventas_music_secret_key_2024"
+ALGORITHM = "HS256"
+
+# Models
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+class VentaModel(BaseModel):
+    id: Optional[str] = None
+    fecha: str
+    nombre: str
+    celular: str
+    paquete: str
+    estilo: str
+    valor: float
+    estado: str
+    texto_cancion: str
+    observacion: str = ""
+    link_descarga: str = ""
+
+class VentaResponse(BaseModel):
+    id: str
+    fecha: str
+    nombre: str
+    celular: str
+    paquete: str
+    estilo: str
+    valor: float
+    estado: str
+    texto_cancion: str
+    observacion: str
+    link_descarga: str
+
+# Initialize default user
+def init_default_user():
+    existing_user = users_collection.find_one({"username": "indigena"})
+    if not existing_user:
+        hashed_password = bcrypt.hashpw("careplancha123".encode('utf-8'), bcrypt.gensalt())
+        users_collection.insert_one({
+            "id": str(uuid.uuid4()),
+            "username": "indigena",
+            "password": hashed_password,
+            "created_at": datetime.now()
+        })
+        print("Default user created successfully")
+
+# JWT functions
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(hours=24)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    try:
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        return username
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
+# Import Excel data
+def import_excel_data():
+    try:
+        # Check if data already imported
+        if ventas_collection.count_documents({}) > 0:
+            return
+        
+        df = pd.read_excel('/app/ventas_music.xlsx', sheet_name='VENTAS MUSIC DT')
+        df_clean = df.dropna(how='all')
+        
+        ventas_data = []
+        for _, row in df_clean.iterrows():
+            # Skip header rows and invalid data
+            if pd.isna(row.iloc[1]) or str(row.iloc[0]).startswith('Cierre'):
+                continue
+                
+            try:
+                fecha = row.iloc[0]
+                if isinstance(fecha, datetime):
+                    fecha_str = fecha.strftime('%Y-%m-%d')
+                else:
+                    fecha_str = str(fecha) if not pd.isna(fecha) else datetime.now().strftime('%Y-%m-%d')
+                
+                venta = {
+                    "id": str(uuid.uuid4()),
+                    "fecha": fecha_str,
+                    "nombre": str(row.iloc[1]) if not pd.isna(row.iloc[1]) else "",
+                    "celular": str(row.iloc[2]) if not pd.isna(row.iloc[2]) else "",
+                    "paquete": str(row.iloc[3]) if not pd.isna(row.iloc[3]) else "",
+                    "estilo": str(row.iloc[4]) if not pd.isna(row.iloc[4]) else "",
+                    "valor": float(row.iloc[5]) if not pd.isna(row.iloc[5]) else 0.0,
+                    "estado": str(row.iloc[6]) if not pd.isna(row.iloc[6]) else "",
+                    "texto_cancion": str(row.iloc[7]) if not pd.isna(row.iloc[7]) else "",
+                    "observacion": str(row.iloc[8]) if not pd.isna(row.iloc[8]) else "",
+                    "link_descarga": str(row.iloc[9]) if not pd.isna(row.iloc[9]) else "",
+                    "created_at": datetime.now()
+                }
+                
+                # Only add if has valid data
+                if venta["nombre"] and venta["celular"]:
+                    ventas_data.append(venta)
+                    
+            except Exception as e:
+                print(f"Error processing row: {e}")
+                continue
+        
+        if ventas_data:
+            ventas_collection.insert_many(ventas_data)
+            print(f"Imported {len(ventas_data)} ventas records")
+    except Exception as e:
+        print(f"Error importing Excel data: {e}")
+
+# Routes
+@app.on_event("startup")
+async def startup_event():
+    init_default_user()
+    import_excel_data()
+
+@app.get("/api/health")
+async def health():
+    return {"status": "ok"}
+
+@app.post("/api/login")
+async def login(request: LoginRequest):
+    user = users_collection.find_one({"username": request.username})
+    if not user or not bcrypt.checkpw(request.password.encode('utf-8'), user['password']):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    
+    access_token = create_access_token(data={"sub": user["username"]})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/api/ventas", response_model=List[VentaResponse])
+async def get_ventas(current_user: str = Depends(verify_token)):
+    ventas = list(ventas_collection.find({}, {"_id": 0}))
+    return ventas
+
+@app.post("/api/ventas", response_model=VentaResponse)
+async def create_venta(venta: VentaModel, current_user: str = Depends(verify_token)):
+    venta_dict = venta.dict()
+    venta_dict["id"] = str(uuid.uuid4())
+    venta_dict["created_at"] = datetime.now()
+    
+    ventas_collection.insert_one(venta_dict)
+    return venta_dict
+
+@app.put("/api/ventas/{venta_id}", response_model=VentaResponse)
+async def update_venta(venta_id: str, venta: VentaModel, current_user: str = Depends(verify_token)):
+    venta_dict = venta.dict()
+    venta_dict["updated_at"] = datetime.now()
+    
+    result = ventas_collection.update_one(
+        {"id": venta_id},
+        {"$set": venta_dict}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Venta not found")
+    
+    updated_venta = ventas_collection.find_one({"id": venta_id}, {"_id": 0})
+    return updated_venta
+
+@app.delete("/api/ventas/{venta_id}")
+async def delete_venta(venta_id: str, current_user: str = Depends(verify_token)):
+    result = ventas_collection.delete_one({"id": venta_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Venta not found")
+    return {"message": "Venta deleted successfully"}
+
+@app.get("/api/stats")
+async def get_stats(current_user: str = Depends(verify_token)):
+    total_ventas = ventas_collection.count_documents({})
+    
+    # Total ingresos
+    pipeline = [{"$group": {"_id": None, "total": {"$sum": "$valor"}}}]
+    result = list(ventas_collection.aggregate(pipeline))
+    total_ingresos = result[0]["total"] if result else 0
+    
+    # Ventas por estado
+    pipeline_estado = [
+        {"$group": {"_id": "$estado", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}}
+    ]
+    ventas_por_estado = list(ventas_collection.aggregate(pipeline_estado))
+    
+    # Ventas por estilo
+    pipeline_estilo = [
+        {"$group": {"_id": "$estilo", "count": {"$sum": 1}, "total_valor": {"$sum": "$valor"}}},
+        {"$sort": {"count": -1}}
+    ]
+    ventas_por_estilo = list(ventas_collection.aggregate(pipeline_estilo))
+    
+    return {
+        "total_ventas": total_ventas,
+        "total_ingresos": total_ingresos,
+        "ventas_por_estado": ventas_por_estado,
+        "ventas_por_estilo": ventas_por_estilo
+    }
+
+@app.post("/api/upload-excel")
+async def upload_excel(file: UploadFile = File(...), current_user: str = Depends(verify_token)):
+    if not file.filename.endswith(('.xlsx', '.xls')):
+        raise HTTPException(status_code=400, detail="File must be Excel format")
+    
+    try:
+        contents = await file.read()
+        df = pd.read_excel(io.BytesIO(contents), sheet_name='VENTAS MUSIC DT')
+        df_clean = df.dropna(how='all')
+        
+        imported_count = 0
+        for _, row in df_clean.iterrows():
+            if pd.isna(row.iloc[1]) or str(row.iloc[0]).startswith('Cierre'):
+                continue
+                
+            try:
+                fecha = row.iloc[0]
+                if isinstance(fecha, datetime):
+                    fecha_str = fecha.strftime('%Y-%m-%d')
+                else:
+                    fecha_str = str(fecha) if not pd.isna(fecha) else datetime.now().strftime('%Y-%m-%d')
+                
+                venta = {
+                    "id": str(uuid.uuid4()),
+                    "fecha": fecha_str,
+                    "nombre": str(row.iloc[1]) if not pd.isna(row.iloc[1]) else "",
+                    "celular": str(row.iloc[2]) if not pd.isna(row.iloc[2]) else "",
+                    "paquete": str(row.iloc[3]) if not pd.isna(row.iloc[3]) else "",
+                    "estilo": str(row.iloc[4]) if not pd.isna(row.iloc[4]) else "",
+                    "valor": float(row.iloc[5]) if not pd.isna(row.iloc[5]) else 0.0,
+                    "estado": str(row.iloc[6]) if not pd.isna(row.iloc[6]) else "",
+                    "texto_cancion": str(row.iloc[7]) if not pd.isna(row.iloc[7]) else "",
+                    "observacion": str(row.iloc[8]) if not pd.isna(row.iloc[8]) else "",
+                    "link_descarga": str(row.iloc[9]) if not pd.isna(row.iloc[9]) else "",
+                    "created_at": datetime.now()
+                }
+                
+                if venta["nombre"] and venta["celular"]:
+                    ventas_collection.insert_one(venta)
+                    imported_count += 1
+                    
+            except Exception as e:
+                print(f"Error processing row: {e}")
+                continue
+        
+        return {"message": f"Successfully imported {imported_count} records"}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)
