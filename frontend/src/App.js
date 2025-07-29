@@ -1045,6 +1045,7 @@ function App() {
                     >
                       <option value="Pagada y en producción">Pagada y en producción</option>
                       <option value="entregada">Entregada</option>
+                      <option value="Entregado por Diegoto">Entregado por Diegoto</option>
                     </select>
                   </div>
                 </div>
