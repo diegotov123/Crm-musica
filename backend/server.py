@@ -354,22 +354,22 @@ async def upload_audio(
 
 @app.get("/api/ventas/{venta_id}/download-audio")
 async def download_audio(venta_id: str, current_user: str = Depends(verify_token_flexible)):
-    """Download audio file for a specific venta - Browser-friendly version"""
-    # Get venta with audio filename
-    venta = ventas_collection.find_one({"id": venta_id})
-    if not venta:
-        raise HTTPException(status_code=404, detail="Venta not found")
-    
-    audio_filename = venta.get("audio_filename")
-    if not audio_filename:
-        raise HTTPException(status_code=404, detail="No audio file found for this venta")
-    
-    file_path = os.path.join(UPLOAD_DIR, audio_filename)
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="Audio file not found on disk")
-    
-    # Create a clean filename for download - always as MP3
+    """Download audio file for a specific venta - Simple and reliable"""
     try:
+        # Get venta with audio filename
+        venta = ventas_collection.find_one({"id": venta_id})
+        if not venta:
+            raise HTTPException(status_code=404, detail="Venta not found")
+        
+        audio_filename = venta.get("audio_filename")
+        if not audio_filename:
+            raise HTTPException(status_code=404, detail="No audio file found for this venta")
+        
+        file_path = os.path.join(UPLOAD_DIR, audio_filename)
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="Audio file not found on disk")
+        
+        # Create a clean filename for download - always as MP3
         cliente_name = venta.get('nombre', 'cliente').strip()
         estilo = venta.get('estilo', 'cancion').strip()
         
@@ -389,30 +389,18 @@ async def download_audio(venta_id: str, current_user: str = Depends(verify_token
         
         print(f"Downloading audio: {audio_filename} as {download_filename}")
         
-        # Use FileResponse for better browser compatibility
-        return FileResponse(
-            path=file_path,
-            filename=download_filename,
-            media_type='audio/mpeg',
-            headers={
-                "Content-Disposition": f'attachment; filename="{download_filename}"',
-                "Content-Type": "audio/mpeg",
-                "Cache-Control": "no-cache, no-store, must-revalidate",
-                "Pragma": "no-cache",
-                "Expires": "0",
-                "X-Content-Type-Options": "nosniff"
-            }
-        )
-        
-    except Exception as e:
-        print(f"Error in download_audio: {e}")
-        # Fallback to simple FileResponse
-        download_filename = f"audio_venta_{venta_id[:8]}.mp3"
+        # Use FileResponse for maximum compatibility
         return FileResponse(
             path=file_path,
             filename=download_filename,
             media_type='audio/mpeg'
         )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error in download_audio: {e}")
+        raise HTTPException(status_code=500, detail=f"Error downloading file: {str(e)}")
 
 @app.delete("/api/ventas/{venta_id}/audio")
 async def delete_audio(venta_id: str, current_user: str = Depends(verify_token)):
