@@ -378,11 +378,62 @@ async def get_stats(current_user: str = Depends(verify_token)):
     ]
     ventas_por_estilo = list(ventas_collection.aggregate(pipeline_estilo))
     
+    # Ingresos por día
+    pipeline_ingresos_dia = [
+        {
+            "$group": {
+                "_id": "$fecha",
+                "ingresos": {"$sum": "$valor"},
+                "cantidad": {"$sum": 1}
+            }
+        },
+        {"$sort": {"_id": 1}}
+    ]
+    ingresos_por_dia = list(ventas_collection.aggregate(pipeline_ingresos_dia))
+    
+    # Top clientes
+    pipeline_clientes = [
+        {
+            "$group": {
+                "_id": "$nombre",
+                "total_gastado": {"$sum": "$valor"},
+                "cantidad_pedidos": {"$sum": 1}
+            }
+        },
+        {"$sort": {"total_gastado": -1}},
+        {"$limit": 5}
+    ]
+    top_clientes = list(ventas_collection.aggregate(pipeline_clientes))
+    
+    # Ingresos por mes
+    pipeline_mes = [
+        {
+            "$addFields": {
+                "fecha_obj": {"$dateFromString": {"dateString": "$fecha"}}
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "year": {"$year": "$fecha_obj"},
+                    "month": {"$month": "$fecha_obj"}
+                },
+                "ingresos": {"$sum": "$valor"},
+                "cantidad": {"$sum": 1}
+            }
+        },
+        {"$sort": {"_id.year": 1, "_id.month": 1}}
+    ]
+    ingresos_por_mes = list(ventas_collection.aggregate(pipeline_mes))
+    
     return {
         "total_ventas": total_ventas,
         "total_ingresos": total_ingresos,
         "ventas_por_estado": ventas_por_estado,
-        "ventas_por_estilo": ventas_por_estilo
+        "ventas_por_estilo": ventas_por_estilo,
+        "ingresos_por_dia": ingresos_por_dia,
+        "top_clientes": top_clientes,
+        "ingresos_por_mes": ingresos_por_mes
     }
 
 @app.post("/api/upload-excel")
