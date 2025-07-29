@@ -532,6 +532,7 @@ function App() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estilo</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Audio</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                     </tr>
                   </thead>
@@ -559,6 +560,28 @@ function App() {
                           }`}>
                             {venta.estado}
                           </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          {venta.audio_filename ? (
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => downloadAudio(venta.id, venta.nombre)}
+                                className="text-blue-600 hover:text-blue-900 flex items-center"
+                                title="Descargar audio"
+                              >
+                                🎵 Descargar
+                              </button>
+                              <button
+                                onClick={() => deleteAudio(venta.id)}
+                                className="text-red-600 hover:text-red-900"
+                                title="Eliminar audio"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">Sin audio</span>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                           <button
