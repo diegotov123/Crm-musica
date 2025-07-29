@@ -256,7 +256,7 @@ async def upload_audio(
         )
     
     try:
-        # Generate unique filename
+        # Generate unique filename - always save with original extension but provide as MP3 on download
         unique_filename = f"{venta_id}_{uuid.uuid4().hex}{file_extension}"
         file_path = os.path.join(UPLOAD_DIR, unique_filename)
         
@@ -267,13 +267,19 @@ async def upload_audio(
         # Update venta with audio filename
         ventas_collection.update_one(
             {"id": venta_id},
-            {"$set": {"audio_filename": unique_filename, "updated_at": datetime.now()}}
+            {"$set": {
+                "audio_filename": unique_filename,
+                "audio_original_name": audio_file.filename,
+                "audio_size": os.path.getsize(file_path),
+                "updated_at": datetime.now()
+            }}
         )
         
         return {
             "message": "Audio file uploaded successfully",
             "filename": unique_filename,
-            "original_filename": audio_file.filename
+            "original_filename": audio_file.filename,
+            "download_note": "File will be available as MP3 format when downloaded"
         }
     
     except Exception as e:
