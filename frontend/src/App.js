@@ -199,20 +199,35 @@ function App() {
     try {
       console.log('Iniciando descarga de audio para venta:', ventaId);
       
-      const response = await fetch(`${API_BASE}/api/ventas/${ventaId}/download-audio`, {
+      // Create download URL directly
+      const downloadUrl = `${API_BASE}/api/ventas/${ventaId}/download-audio`;
+      
+      // Create a temporary link with proper authentication
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.target = '_blank';
+      
+      // Add authorization header through a hidden iframe for download
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+      
+      // Alternative approach: Use fetch and blob for better control
+      const response = await fetch(downloadUrl, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'audio/mpeg,audio/*,*/*'
-        }
+        },
+        credentials: 'same-origin'
       });
 
       console.log('Respuesta de descarga:', response.status, response.statusText);
 
       if (response.ok) {
-        // Get the content-disposition header if present
+        // Get filename from headers or create one
         const contentDisposition = response.headers.get('content-disposition');
-        let filename = `${nombreCliente}_${estilo}.mp3`;
+        let filename = `${nombreCliente.replace(/[^a-zA-Z0-9]/g, '_')}_${estilo.replace(/[^a-zA-Z0-9]/g, '_')}.mp3`;
         
         if (contentDisposition) {
           const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
@@ -222,40 +237,48 @@ function App() {
         }
 
         const blob = await response.blob();
-        console.log('Blob creado, tamaño:', blob.size);
+        console.log('Blob creado - Tamaño:', blob.size, 'Tipo:', blob.type);
         
         if (blob.size === 0) {
           alert('El archivo de audio está vacío');
           return;
         }
 
-        const url = window.URL.createObjectURL(blob);
+        // Force download using URL.createObjectURL
+        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = filename;
         a.style.display = 'none';
         
+        // Add to DOM, click, and remove
         document.body.appendChild(a);
-        console.log('Iniciando descarga con nombre:', filename);
         a.click();
         
-        // Clean up
+        // Clean up after a short delay
         setTimeout(() => {
-          window.URL.revokeObjectURL(url);
           document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          if (iframe && iframe.parentNode) {
+            document.body.removeChild(iframe);
+          }
         }, 100);
         
-        alert(`Audio descargado exitosamente: ${filename}`);
+        alert(`✅ Audio descargado: ${filename}`);
+        
       } else if (response.status === 404) {
-        alert('No se encontró el archivo de audio para descargar');
+        alert('❌ No se encontró el archivo de audio para descargar');
+      } else if (response.status === 401) {
+        alert('❌ Error de autenticación. Por favor, vuelve a iniciar sesión.');
       } else {
         const errorText = await response.text();
         console.error('Error en la descarga:', errorText);
-        alert('Error al descargar el audio: ' + errorText);
+        alert(`❌ Error al descargar: ${response.status} ${response.statusText}`);
       }
+      
     } catch (error) {
       console.error('Error en downloadAudio:', error);
-      alert('Error de conexión al descargar el audio');
+      alert('❌ Error de conexión al descargar el audio');
     }
   };
 
