@@ -6,7 +6,7 @@ const API_BASE = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [token, setToken] = useState(localStorage.getItem('token') || '');
-  const [loginData, setLoginData] = useState({ username: '', password: '' });
+  const [loginData, setLoginData] = useState({ username: 'indigena', password: 'careplancha123' });
   const [ventas, setVentas] = useState([]);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(false);
