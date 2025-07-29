@@ -252,6 +252,177 @@ class VentasMusicAPITester:
             self.log_test("Update Venta", False, f"Error: {str(e)}")
             return False
 
+    def test_upload_audio(self):
+        """Test uploading audio file to a venta"""
+        if not self.token or not self.test_venta_id:
+            self.log_test("Upload Audio", False, "No token or venta ID available")
+            return False
+            
+        try:
+            # Create a test audio file
+            import tempfile
+            import os
+            
+            with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as temp_file:
+                # Write some dummy audio data (just bytes for testing)
+                temp_file.write(b'fake audio data for testing purposes')
+                temp_file_path = temp_file.name
+            
+            try:
+                headers = {
+                    'Authorization': f'Bearer {self.token}'
+                }
+                
+                with open(temp_file_path, 'rb') as audio_file:
+                    files = {'audio_file': ('test_audio.mp3', audio_file, 'audio/mpeg')}
+                    response = requests.post(
+                        f"{self.base_url}/api/ventas/{self.test_venta_id}/upload-audio",
+                        headers=headers,
+                        files=files,
+                        timeout=30
+                    )
+                
+                success = response.status_code == 200
+                details = f"Status: {response.status_code}"
+                
+                if success:
+                    data = response.json()
+                    details += f", Message: {data.get('message', 'N/A')}"
+                    details += f", Filename: {data.get('filename', 'N/A')}"
+                else:
+                    try:
+                        error_data = response.json()
+                        details += f", Error: {error_data}"
+                    except:
+                        details += f", Response: {response.text}"
+                        
+            finally:
+                # Clean up temp file
+                if os.path.exists(temp_file_path):
+                    os.unlink(temp_file_path)
+                    
+            self.log_test("Upload Audio", success, details)
+            return success
+        except Exception as e:
+            self.log_test("Upload Audio", False, f"Error: {str(e)}")
+            return False
+
+    def test_download_audio(self):
+        """Test downloading audio file from a venta"""
+        if not self.token or not self.test_venta_id:
+            self.log_test("Download Audio", False, "No token or venta ID available")
+            return False
+            
+        try:
+            headers = {
+                'Authorization': f'Bearer {self.token}'
+            }
+            response = requests.get(
+                f"{self.base_url}/api/ventas/{self.test_venta_id}/download-audio",
+                headers=headers,
+                timeout=30
+            )
+            
+            success = response.status_code == 200
+            details = f"Status: {response.status_code}"
+            
+            if success:
+                details += f", Content-Type: {response.headers.get('content-type', 'N/A')}"
+                details += f", Content-Length: {len(response.content)} bytes"
+            else:
+                try:
+                    error_data = response.json()
+                    details += f", Error: {error_data}"
+                except:
+                    details += f", Response: {response.text}"
+                    
+            self.log_test("Download Audio", success, details)
+            return success
+        except Exception as e:
+            self.log_test("Download Audio", False, f"Error: {str(e)}")
+            return False
+
+    def test_delete_audio(self):
+        """Test deleting audio file from a venta"""
+        if not self.token or not self.test_venta_id:
+            self.log_test("Delete Audio", False, "No token or venta ID available")
+            return False
+            
+        try:
+            headers = {
+                'Authorization': f'Bearer {self.token}'
+            }
+            response = requests.delete(
+                f"{self.base_url}/api/ventas/{self.test_venta_id}/audio",
+                headers=headers,
+                timeout=10
+            )
+            
+            success = response.status_code == 200
+            details = f"Status: {response.status_code}"
+            
+            if success:
+                try:
+                    data = response.json()
+                    details += f", Message: {data.get('message', 'N/A')}"
+                except:
+                    details += ", Audio deletion successful"
+            else:
+                try:
+                    error_data = response.json()
+                    details += f", Error: {error_data}"
+                except:
+                    details += f", Response: {response.text}"
+                    
+            self.log_test("Delete Audio", success, details)
+            return success
+        except Exception as e:
+            self.log_test("Delete Audio", False, f"Error: {str(e)}")
+            return False
+
+    def test_ventas_include_audio_field(self):
+        """Test that ventas response includes audio_filename field"""
+        if not self.token:
+            self.log_test("Ventas Audio Field", False, "No token available")
+            return False
+            
+        try:
+            headers = {
+                'Authorization': f'Bearer {self.token}',
+                'Content-Type': 'application/json'
+            }
+            response = requests.get(f"{self.base_url}/api/ventas", headers=headers, timeout=10)
+            
+            success = response.status_code == 200
+            details = f"Status: {response.status_code}"
+            
+            if success:
+                data = response.json()
+                if len(data) > 0:
+                    first_venta = data[0]
+                    has_audio_field = 'audio_filename' in first_venta
+                    if has_audio_field:
+                        details += f", audio_filename field present: '{first_venta.get('audio_filename', '')}'"
+                        success = True
+                    else:
+                        details += ", audio_filename field MISSING"
+                        success = False
+                else:
+                    details += ", No ventas found to check audio field"
+                    success = False
+            else:
+                try:
+                    error_data = response.json()
+                    details += f", Error: {error_data}"
+                except:
+                    details += f", Response: {response.text}"
+                    
+            self.log_test("Ventas Audio Field", success, details)
+            return success
+        except Exception as e:
+            self.log_test("Ventas Audio Field", False, f"Error: {str(e)}")
+            return False
+
     def test_delete_venta(self):
         """Test deleting a venta"""
         if not self.token or not self.test_venta_id:
