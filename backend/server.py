@@ -39,7 +39,7 @@ users_collection = db['users']
 ventas_collection = db['ventas']
 
 # Security
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)  # Make it optional
 SECRET_KEY = "ventas_music_secret_key_2024"
 ALGORITHM = "HS256"
 
