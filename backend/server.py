@@ -207,6 +207,7 @@ async def create_venta(venta: VentaModel, current_user: str = Depends(verify_tok
 @app.put("/api/ventas/{venta_id}", response_model=VentaResponse)
 async def update_venta(venta_id: str, venta: VentaModel, current_user: str = Depends(verify_token)):
     venta_dict = venta.dict()
+    venta_dict["id"] = venta_id  # Preserve the ID
     venta_dict["updated_at"] = datetime.now()
     
     result = ventas_collection.update_one(
