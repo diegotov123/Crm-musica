@@ -544,9 +544,18 @@ async def upload_confirmacion_pago(
         raise HTTPException(status_code=500, detail=f"Error uploading image: {str(e)}")
 
 @app.get("/api/ventas/{venta_id}/view-confirmacion-pago")
-async def view_confirmacion_pago(venta_id: str, current_user: str = Depends(verify_token_flexible)):
-    """View payment confirmation image for a specific venta"""
+async def view_confirmacion_pago(venta_id: str, token: str = Query(...)):
+    """View payment confirmation image - Mobile and desktop friendly"""
     try:
+        # Verify token from query parameter
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            username = payload.get("sub")
+            if not username:
+                raise HTTPException(status_code=401, detail="Invalid token")
+        except jwt.PyJWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        
         # Get venta with image filename
         venta = ventas_collection.find_one({"id": venta_id})
         if not venta:
