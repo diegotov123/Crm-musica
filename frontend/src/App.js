@@ -173,15 +173,15 @@ function App() {
     setLoading(false);
   };
 
-  const uploadAudioFile = async (ventaId) => {
-    if (!selectedAudioFile) return;
+  const uploadImageFile = async (ventaId) => {
+    if (!selectedImageFile) return;
     
-    setUploadingAudio(true);
+    setUploadingImage(true);
     const formData = new FormData();
-    formData.append('audio_file', selectedAudioFile);
+    formData.append('imagen_file', selectedImageFile);
 
     try {
-      const response = await fetch(`${API_BASE}/api/ventas/${ventaId}/upload-audio`, {
+      const response = await fetch(`${API_BASE}/api/ventas/${ventaId}/upload-confirmacion-pago`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -190,14 +190,41 @@ function App() {
       });
 
       if (response.ok) {
-        console.log('Audio uploaded successfully');
+        console.log('Image uploaded successfully');
       } else {
-        console.error('Error uploading audio');
+        console.error('Error uploading image');
       }
     } catch (error) {
-      console.error('Error uploading audio:', error);
+      console.error('Error uploading image:', error);
     }
-    setUploadingAudio(false);
+    setUploadingImage(false);
+  };
+
+  const viewConfirmacionPago = (ventaId) => {
+    const imageUrl = `${API_BASE}/api/ventas/${ventaId}/view-confirmacion-pago?token=${encodeURIComponent(token)}`;
+    window.open(imageUrl, '_blank');
+  };
+
+  const deleteConfirmacionPago = async (ventaId) => {
+    if (!window.confirm('¿Está seguro de eliminar la imagen de confirmación de pago?')) return;
+
+    try {
+      const response = await fetch(`${API_BASE}/api/ventas/${ventaId}/confirmacion-pago`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        fetchVentas();
+        alert('Imagen de confirmación de pago eliminada');
+      } else {
+        alert('Error al eliminar la imagen');
+      }
+    } catch (error) {
+      alert('Error al eliminar la imagen');
+    }
   };
 
   const downloadAudio = (ventaId, nombreCliente, estilo) => {
