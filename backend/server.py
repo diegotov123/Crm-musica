@@ -295,13 +295,15 @@ async def download_audio(venta_id: str, current_user: str = Depends(verify_token
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Audio file not found on disk")
     
-    # Get original filename for download
-    original_name = f"{venta.get('nombre', 'audio')}_{venta.get('estilo', 'song')}{os.path.splitext(audio_filename)[1]}"
+    # Create a clean filename for download - always as MP3
+    cliente_name = venta.get('nombre', 'cliente').replace(' ', '_').replace('/', '_')
+    estilo = venta.get('estilo', 'cancion').replace(' ', '_').replace('/', '_')
+    download_filename = f"{cliente_name}_{estilo}.mp3"
     
     return FileResponse(
         path=file_path,
-        filename=original_name,
-        media_type='application/octet-stream'
+        filename=download_filename,
+        media_type='audio/mpeg'
     )
 
 @app.delete("/api/ventas/{venta_id}/audio")
