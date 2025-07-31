@@ -387,9 +387,12 @@ async def download_audio(
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="Audio file not found on disk")
         
-        # Create a clean filename for download - always as MP3
+        # Create a clean filename for download - preserve original format
         cliente_name = venta.get('nombre', 'cliente').strip()
         estilo = venta.get('estilo', 'cancion').strip()
+        
+        # Get original file extension from the stored filename
+        original_extension = os.path.splitext(audio_filename)[1].lower()
         
         # Clean the filename
         import re
@@ -399,7 +402,7 @@ async def download_audio(
         estilo_clean = re.sub(r'[^\w\s-]', '', estilo).strip()
         estilo_clean = re.sub(r'[-\s]+', '_', estilo_clean)
         
-        download_filename = f"{cliente_clean}_{estilo_clean}.mp3"
+        download_filename = f"{cliente_clean}_{estilo_clean}{original_extension}"
         
         # Ensure filename is not empty
         if not cliente_clean or cliente_clean == '_':
