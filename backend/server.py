@@ -334,12 +334,13 @@ async def upload_audio(
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(audio_file.file, buffer)
         
-        # Update venta with audio filename
+        # Update venta with audio filename and extension
         ventas_collection.update_one(
             {"id": venta_id},
             {"$set": {
                 "audio_filename": unique_filename,
                 "audio_original_name": audio_file.filename,
+                "audio_extension": file_extension,
                 "audio_size": os.path.getsize(file_path),
                 "updated_at": datetime.now()
             }}
