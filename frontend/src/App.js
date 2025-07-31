@@ -726,6 +726,31 @@ function App() {
               </div>
             </div>
 
+            {/* Charts Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              {/* Top Clientes por Nombre */}
+              <div className="bg-gray-900 rounded-2xl p-6 border border-green-500/30 shadow-2xl">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+                  <span className="mr-3">👑</span>
+                  <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+                    Top por Nombre
+                  </span>
+                </h3>
+                <div className="space-y-3">
+                  {stats.top_clientes?.map((cliente, index) => (
+                    <div key={index} className="flex justify-between items-center p-3 rounded-lg border border-green-500/20 bg-green-500/5 shadow-lg">
+                      <div>
+                        <div className="text-white font-medium">{cliente._id}</div>
+                        <div className="text-green-300 text-sm">{cliente.celular} - {cliente.cantidad_pedidos} pedidos</div>
+                      </div>
+                      <div className="text-green-400 font-bold">
+                        {formatCurrency(cliente.total_gastado)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Top Clientes por Teléfono */}
               <div className="bg-gray-900 rounded-2xl p-6 border border-orange-500/30 shadow-2xl">
                 <h3 className="text-xl font-bold text-white mb-4 flex items-center">
@@ -748,10 +773,7 @@ function App() {
                   ))}
                 </div>
               </div>
-            </div>
 
-            {/* Charts Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Ventas por Estado */}
               <div className="bg-gray-900 rounded-2xl p-6 border border-purple-500/30 shadow-2xl">
                 <h3 className="text-xl font-bold text-white mb-4 flex items-center">
@@ -772,29 +794,6 @@ function App() {
                       </div>
                     );
                   })}
-                </div>
-              </div>
-              
-              {/* Top Clientes por Nombre */}
-              <div className="bg-gray-900 rounded-2xl p-6 border border-green-500/30 shadow-2xl">
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-                  <span className="mr-3">👑</span>
-                  <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                    Top Clientes por Nombre
-                  </span>
-                </h3>
-                <div className="space-y-3">
-                  {stats.top_clientes?.map((cliente, index) => (
-                    <div key={index} className="flex justify-between items-center p-3 rounded-lg border border-green-500/20 bg-green-500/5 shadow-lg">
-                      <div>
-                        <div className="text-white font-medium">{cliente._id}</div>
-                        <div className="text-green-300 text-sm">{cliente.celular} - {cliente.cantidad_pedidos} pedidos</div>
-                      </div>
-                      <div className="text-green-400 font-bold">
-                        {formatCurrency(cliente.total_gastado)}
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>
