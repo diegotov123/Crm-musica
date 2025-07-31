@@ -476,9 +476,12 @@ async def download_audio_mobile(venta_id: str, token: str = Query(...)):
             print(f"❌ Audio file not found on disk: {file_path}")
             raise HTTPException(status_code=404, detail="Audio file not found on disk")
         
-        # Create clean filename
+        # Create clean filename - preserve original format
         cliente_name = venta.get('nombre', 'cliente').strip()
         estilo = venta.get('estilo', 'cancion').strip()
+        
+        # Get original file extension
+        original_extension = os.path.splitext(audio_filename)[1].lower()
         
         import re
         cliente_clean = re.sub(r'[^\w\s-]', '', cliente_name)[:20].strip()
@@ -492,14 +495,25 @@ async def download_audio_mobile(venta_id: str, token: str = Query(...)):
         if not estilo_clean or estilo_clean == '_':
             estilo_clean = "cancion"
             
-        download_filename = f"{cliente_clean}_{estilo_clean}.mp3"
+        download_filename = f"{cliente_clean}_{estilo_clean}{original_extension}"
         
         print(f"✅ Download: {audio_filename} -> {download_filename}")
+        
+        # Determine correct media type based on file extension
+        media_type_map = {
+            '.mp3': 'audio/mpeg',
+            '.wav': 'audio/wav',
+            '.m4a': 'audio/mp4',
+            '.ogg': 'audio/ogg',
+            '.flac': 'audio/flac',
+            '.aac': 'audio/aac'
+        }
+        media_type = media_type_map.get(original_extension, 'audio/mpeg')
         
         return FileResponse(
             path=file_path,
             filename=download_filename,
-            media_type='audio/mpeg'
+            media_type=media_type
         )
         
     except HTTPException:
