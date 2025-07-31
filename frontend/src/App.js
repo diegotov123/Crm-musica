@@ -233,6 +233,8 @@ function App() {
     if (!selectedImageFile) return;
     
     setUploadingImage(true);
+    addNotification('📤 Subiendo imagen de confirmación de pago...', 'info');
+    
     const formData = new FormData();
     formData.append('imagen_file', selectedImageFile);
 
@@ -246,12 +248,16 @@ function App() {
       });
 
       if (response.ok) {
-        console.log('Image uploaded successfully');
+        const result = await response.json();
+        addNotification(`🖼️ ¡Imagen subida exitosamente!`, 'success');
+        addNotification(`📁 Archivo: ${selectedImageFile.name}`, 'info');
       } else {
-        console.error('Error uploading image');
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.detail || 'Error desconocido al subir imagen';
+        addNotification(`❌ Error al subir imagen: ${errorMessage}`, 'error');
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
+      addNotification(`🚫 Error de conexión al subir imagen: ${error.message}`, 'error');
     }
     setUploadingImage(false);
   };
