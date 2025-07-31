@@ -349,7 +349,8 @@ async def upload_audio(
             "message": "Audio file uploaded successfully",
             "filename": unique_filename,
             "original_filename": audio_file.filename,
-            "download_note": "File will be available as MP3 format when downloaded"
+            "file_extension": file_extension,
+            "download_note": "File will preserve original format and quality when downloaded"
         }
     
     except Exception as e:
