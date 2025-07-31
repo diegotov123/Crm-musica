@@ -199,6 +199,8 @@ function App() {
     if (!selectedAudioFile) return;
     
     setUploadingAudio(true);
+    addNotification('📤 Subiendo archivo de audio...', 'info');
+    
     const formData = new FormData();
     formData.append('audio_file', selectedAudioFile);
 
@@ -212,12 +214,17 @@ function App() {
       });
 
       if (response.ok) {
-        console.log('Audio uploaded successfully');
+        const result = await response.json();
+        const fileExtension = result.file_extension || '';
+        addNotification(`🎵 ¡Audio subido exitosamente! Formato: ${fileExtension.toUpperCase()}`, 'success');
+        addNotification(`📁 Archivo: ${selectedAudioFile.name}`, 'info');
       } else {
-        console.error('Error uploading audio');
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.detail || 'Error desconocido al subir audio';
+        addNotification(`❌ Error al subir audio: ${errorMessage}`, 'error');
       }
     } catch (error) {
-      console.error('Error uploading audio:', error);
+      addNotification(`🚫 Error de conexión al subir audio: ${error.message}`, 'error');
     }
     setUploadingAudio(false);
   };
