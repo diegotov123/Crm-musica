@@ -252,60 +252,85 @@ class VentasMusicAPITester:
             self.log_test("Update Venta", False, f"Error: {str(e)}")
             return False
 
-    def test_upload_audio(self):
-        """Test uploading audio file to a venta"""
+    def test_upload_audio_formats(self):
+        """Test uploading different audio formats to preserve original format"""
         if not self.token or not self.test_venta_id:
-            self.log_test("Upload Audio", False, "No token or venta ID available")
+            self.log_test("Upload Audio Formats", False, "No token or venta ID available")
             return False
             
-        try:
-            # Create a test audio file
-            import tempfile
-            import os
-            
-            with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as temp_file:
-                # Write some dummy audio data (just bytes for testing)
-                temp_file.write(b'fake audio data for testing purposes')
-                temp_file_path = temp_file.name
-            
+        # Test different audio formats as mentioned in the review request
+        audio_formats = [
+            ('.mp3', 'audio/mpeg', 'MP3 format'),
+            ('.wav', 'audio/wav', 'WAV format'),
+            ('.m4a', 'audio/mp4', 'M4A format'),
+            ('.ogg', 'audio/ogg', 'OGG format'),
+            ('.flac', 'audio/flac', 'FLAC format'),
+            ('.aac', 'audio/aac', 'AAC format')
+        ]
+        
+        all_passed = True
+        
+        for extension, mime_type, format_name in audio_formats:
             try:
-                headers = {
-                    'Authorization': f'Bearer {self.token}'
-                }
+                import tempfile
+                import os
                 
-                with open(temp_file_path, 'rb') as audio_file:
-                    files = {'audio_file': ('test_audio.mp3', audio_file, 'audio/mpeg')}
-                    response = requests.post(
-                        f"{self.base_url}/api/ventas/{self.test_venta_id}/upload-audio",
-                        headers=headers,
-                        files=files,
-                        timeout=30
-                    )
+                with tempfile.NamedTemporaryFile(suffix=extension, delete=False) as temp_file:
+                    # Write some dummy audio data (just bytes for testing)
+                    temp_file.write(b'fake audio data for testing purposes - ' + format_name.encode())
+                    temp_file_path = temp_file.name
                 
-                success = response.status_code == 200
-                details = f"Status: {response.status_code}"
-                
-                if success:
-                    data = response.json()
-                    details += f", Message: {data.get('message', 'N/A')}"
-                    details += f", Filename: {data.get('filename', 'N/A')}"
-                else:
-                    try:
-                        error_data = response.json()
-                        details += f", Error: {error_data}"
-                    except:
-                        details += f", Response: {response.text}"
-                        
-            finally:
-                # Clean up temp file
-                if os.path.exists(temp_file_path):
-                    os.unlink(temp_file_path)
+                try:
+                    headers = {
+                        'Authorization': f'Bearer {self.token}'
+                    }
                     
-            self.log_test("Upload Audio", success, details)
-            return success
-        except Exception as e:
-            self.log_test("Upload Audio", False, f"Error: {str(e)}")
-            return False
+                    with open(temp_file_path, 'rb') as audio_file:
+                        files = {'audio_file': (f'test_audio{extension}', audio_file, mime_type)}
+                        response = requests.post(
+                            f"{self.base_url}/api/ventas/{self.test_venta_id}/upload-audio",
+                            headers=headers,
+                            files=files,
+                            timeout=30
+                        )
+                    
+                    success = response.status_code == 200
+                    details = f"Status: {response.status_code}"
+                    
+                    if success:
+                        data = response.json()
+                        details += f", Message: {data.get('message', 'N/A')}"
+                        details += f", Filename: {data.get('filename', 'N/A')}"
+                        details += f", Extension: {data.get('file_extension', 'N/A')}"
+                        
+                        # Check if original format is preserved
+                        if data.get('file_extension') == extension:
+                            details += f" ✅ FORMAT PRESERVED"
+                        else:
+                            details += f" ❌ FORMAT NOT PRESERVED (expected {extension}, got {data.get('file_extension')})"
+                            success = False
+                    else:
+                        try:
+                            error_data = response.json()
+                            details += f", Error: {error_data}"
+                        except:
+                            details += f", Response: {response.text}"
+                        all_passed = False
+                            
+                finally:
+                    # Clean up temp file
+                    if os.path.exists(temp_file_path):
+                        os.unlink(temp_file_path)
+                        
+                self.log_test(f"Upload {format_name}", success, details)
+                if not success:
+                    all_passed = False
+                    
+            except Exception as e:
+                self.log_test(f"Upload {format_name}", False, f"Error: {str(e)}")
+                all_passed = False
+                
+        return all_passed
 
     def test_download_audio(self):
         """Test downloading audio file from a venta"""
