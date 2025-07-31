@@ -332,39 +332,89 @@ class VentasMusicAPITester:
                 
         return all_passed
 
-    def test_download_audio(self):
-        """Test downloading audio file from a venta"""
+    def test_download_audio_format_preservation(self):
+        """Test that download preserves original audio format and headers"""
         if not self.token or not self.test_venta_id:
-            self.log_test("Download Audio", False, "No token or venta ID available")
+            self.log_test("Download Format Preservation", False, "No token or venta ID available")
             return False
             
         try:
+            # First, get the venta to check what format was uploaded
             headers = {
-                'Authorization': f'Bearer {self.token}'
+                'Authorization': f'Bearer {self.token}',
+                'Content-Type': 'application/json'
             }
-            response = requests.get(
-                f"{self.base_url}/api/ventas/{self.test_venta_id}/download-audio",
-                headers=headers,
-                timeout=30
-            )
+            response = requests.get(f"{self.base_url}/api/ventas", headers=headers, timeout=10)
             
+            if response.status_code != 200:
+                self.log_test("Download Format Preservation", False, f"Failed to get ventas: {response.status_code}")
+                return False
+            
+            ventas = response.json()
+            test_venta = None
+            
+            for venta in ventas:
+                if venta.get('id') == self.test_venta_id:
+                    test_venta = venta
+                    break
+            
+            if not test_venta or not test_venta.get('audio_filename'):
+                self.log_test("Download Format Preservation", False, "Test venta not found or no audio file")
+                return False
+            
+            original_extension = test_venta.get('audio_extension', '')
+            
+            # Test download with query token
+            download_url = f"{self.base_url}/api/ventas/{self.test_venta_id}/download-audio?token={self.token}"
+            
+            response = requests.get(download_url, timeout=30)
             success = response.status_code == 200
             details = f"Status: {response.status_code}"
             
             if success:
-                details += f", Content-Type: {response.headers.get('content-type', 'N/A')}"
-                details += f", Content-Length: {len(response.content)} bytes"
+                content_type = response.headers.get('content-type', '')
+                content_disposition = response.headers.get('content-disposition', '')
+                
+                details += f", Original Extension: {original_extension}"
+                details += f", Content-Type: {content_type}"
+                details += f", Content-Disposition: {content_disposition}"
+                
+                # Check if correct media type is returned based on original format
+                expected_media_types = {
+                    '.mp3': 'audio/mpeg',
+                    '.wav': 'audio/wav',
+                    '.m4a': 'audio/mp4',
+                    '.ogg': 'audio/ogg',
+                    '.flac': 'audio/flac',
+                    '.aac': 'audio/aac'
+                }
+                
+                expected_media_type = expected_media_types.get(original_extension, 'audio/mpeg')
+                
+                if expected_media_type in content_type:
+                    details += f" ✅ CORRECT MEDIA TYPE ({expected_media_type})"
+                else:
+                    details += f" ❌ WRONG MEDIA TYPE (expected {expected_media_type}, got {content_type})"
+                    success = False
+                
+                # Check if filename in download preserves original extension
+                if original_extension in content_disposition:
+                    details += f" ✅ EXTENSION PRESERVED"
+                else:
+                    details += f" ❌ EXTENSION NOT PRESERVED"
+                    success = False
+                    
             else:
                 try:
                     error_data = response.json()
                     details += f", Error: {error_data}"
                 except:
-                    details += f", Response: {response.text}"
+                    details += f", Response: {response.text[:200]}"
                     
-            self.log_test("Download Audio", success, details)
+            self.log_test("Download Format Preservation", success, details)
             return success
         except Exception as e:
-            self.log_test("Download Audio", False, f"Error: {str(e)}")
+            self.log_test("Download Format Preservation", False, f"Error: {str(e)}")
             return False
 
     def test_download_audio_query_token(self):
