@@ -406,24 +406,34 @@ async def download_audio(
         
         # Ensure filename is not empty
         if not cliente_clean or cliente_clean == '_':
-            download_filename = f"audio_venta_{venta_id[:8]}.mp3"
+            download_filename = f"audio_venta_{venta_id[:8]}{original_extension}"
         
         print(f"Downloading audio: {audio_filename} as {download_filename}")
         
-        # Mobile-friendly headers
+        # Determine correct media type based on file extension
+        media_type_map = {
+            '.mp3': 'audio/mpeg',
+            '.wav': 'audio/wav',
+            '.m4a': 'audio/mp4',
+            '.ogg': 'audio/ogg',
+            '.flac': 'audio/flac',
+            '.aac': 'audio/aac'
+        }
+        media_type = media_type_map.get(original_extension, 'audio/mpeg')
+        
+        # Headers optimized for audio streaming
         headers = {
             "Content-Disposition": f'attachment; filename="{download_filename}"',
-            "Content-Type": "application/force-download",
-            "Content-Transfer-Encoding": "binary",
-            "Cache-Control": "must-revalidate, post-check=0, pre-check=0",
-            "Pragma": "public"
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
         }
         
-        # Use FileResponse with mobile-friendly configuration
+        # Use FileResponse with correct media type
         return FileResponse(
             path=file_path,
             filename=download_filename,
-            media_type='application/octet-stream',  # More mobile-compatible
+            media_type=media_type,
             headers=headers
         )
         
