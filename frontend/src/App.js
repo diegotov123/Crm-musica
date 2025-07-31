@@ -40,6 +40,8 @@ function App() {
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [showClienteDropdown, setShowClienteDropdown] = useState(false);
+  const [filteredClientes, setFilteredClientes] = useState([]);
 
   useEffect(() => {
     if (token) {
