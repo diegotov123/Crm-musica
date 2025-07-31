@@ -80,6 +80,7 @@ class VentaResponse(BaseModel):
     link_descarga: str
     audio_filename: str
     audio_original_name: str = ""
+    audio_extension: str = ""
     audio_size: int = 0
     confirmacion_pago_imagen: str = ""
 
