@@ -832,12 +832,12 @@ class VentasMusicAPITester:
         self.test_create_venta()
         self.test_update_venta()
         
-        # Audio functionality tests
+        # Audio functionality tests - ENHANCED FOR FORMAT PRESERVATION
         print("\n🎵 Audio Functionality Tests:")
-        self.test_upload_audio()
-        self.test_download_audio()
-        self.test_download_audio_query_token()  # CRITICAL TEST
-        self.test_download_mobile_endpoint()    # NEW MOBILE TEST
+        self.test_upload_audio_formats()           # NEW: Test multiple formats
+        self.test_download_audio_format_preservation()  # NEW: Test format preservation
+        self.test_download_audio_query_token()     # CRITICAL TEST
+        self.test_download_mobile_endpoint()       # NEW MOBILE TEST
         self.test_delete_audio()
         
         # CRITICAL TEST - DIEGOTO download
