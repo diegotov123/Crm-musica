@@ -33,8 +33,9 @@ app.add_middleware(
 
 # MongoDB connection
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+DB_NAME = os.environ.get('DB_NAME', 'ventas_music_db')
 client = MongoClient(MONGO_URL)
-db = client['ventas_music_db']
+db = client[DB_NAME]
 users_collection = db['users']
 ventas_collection = db['ventas']
 
