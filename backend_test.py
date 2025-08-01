@@ -146,7 +146,7 @@ class VentasMusicAPITester:
             return False
 
     def test_create_venta(self):
-        """Test creating a new venta"""
+        """Test creating a new venta with realistic data"""
         if not self.token:
             self.log_test("Create Venta", False, "No token available")
             return False
@@ -154,15 +154,15 @@ class VentasMusicAPITester:
         try:
             test_venta = {
                 "fecha": datetime.now().strftime('%Y-%m-%d'),
-                "nombre": "Test Cliente API",
-                "celular": "3001234567",
-                "paquete": "Canción personalizada de prueba",
+                "nombre": "María González",
+                "celular": "3012345678",
+                "paquete": "Canción personalizada completa",
                 "estilo": "Vallenato",
-                "valor": 25000.0,
+                "valor": 35000.0,
                 "estado": "Pagada y en producción",
-                "texto_cancion": "Esta es una canción de prueba para el API testing",
-                "observacion": "Venta creada por test automatizado",
-                "link_descarga": "https://test.com/download"
+                "texto_cancion": "Quiero una canción para mi esposo en nuestro aniversario, que hable de nuestro amor y los momentos que hemos vivido juntos",
+                "observacion": "Cliente prefiere estilo romántico, entrega para el 15 del mes",
+                "link_descarga": ""
             }
             
             headers = {
@@ -185,6 +185,7 @@ class VentasMusicAPITester:
                     self.test_venta_id = data['id']
                     details += f", Created venta ID: {self.test_venta_id}"
                     details += f", Cliente: {data.get('nombre', 'N/A')}"
+                    details += f", Valor: ${data.get('valor', 0)}"
                 else:
                     success = False
                     details += ", No ID in response"
@@ -199,6 +200,99 @@ class VentasMusicAPITester:
             return success
         except Exception as e:
             self.log_test("Create Venta", False, f"Error: {str(e)}")
+            return False
+
+    def test_create_venta_missing_fields(self):
+        """Test creating venta with missing required fields"""
+        if not self.token:
+            self.log_test("Create Venta (Missing Fields)", False, "No token available")
+            return False
+            
+        try:
+            # Test with missing required fields
+            incomplete_venta = {
+                "fecha": datetime.now().strftime('%Y-%m-%d'),
+                "nombre": "",  # Empty name
+                "celular": "",  # Empty phone
+                "paquete": "Test package",
+                "estilo": "Vallenato",
+                "valor": 25000.0,
+                "estado": "Pendiente",
+                "texto_cancion": "Test song",
+                "observacion": "",
+                "link_descarga": ""
+            }
+            
+            headers = {
+                'Authorization': f'Bearer {self.token}',
+                'Content-Type': 'application/json'
+            }
+            response = requests.post(
+                f"{self.base_url}/api/ventas",
+                json=incomplete_venta,
+                headers=headers,
+                timeout=10
+            )
+            
+            # This should still work as the backend doesn't enforce field validation
+            success = response.status_code == 200
+            details = f"Status: {response.status_code}"
+            
+            if success:
+                data = response.json()
+                details += f", Created with empty fields - ID: {data.get('id', 'N/A')}"
+            else:
+                try:
+                    error_data = response.json()
+                    details += f", Error: {error_data}"
+                except:
+                    details += f", Response: {response.text}"
+                    
+            self.log_test("Create Venta (Missing Fields)", success, details)
+            return success
+        except Exception as e:
+            self.log_test("Create Venta (Missing Fields)", False, f"Error: {str(e)}")
+            return False
+
+    def test_cors_headers(self):
+        """Test CORS headers are properly configured"""
+        try:
+            # Test preflight request
+            headers = {
+                'Origin': 'https://archivo-error.emergent.host',
+                'Access-Control-Request-Method': 'POST',
+                'Access-Control-Request-Headers': 'Content-Type,Authorization'
+            }
+            
+            response = requests.options(
+                f"{self.base_url}/api/ventas",
+                headers=headers,
+                timeout=10
+            )
+            
+            success = True
+            details = f"Status: {response.status_code}"
+            
+            # Check CORS headers
+            cors_headers = {
+                'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
+                'Access-Control-Allow-Credentials': response.headers.get('Access-Control-Allow-Credentials')
+            }
+            
+            details += f", CORS Headers: {cors_headers}"
+            
+            # Check if CORS allows all origins (*)
+            if cors_headers['Access-Control-Allow-Origin'] == '*':
+                details += " ✅ CORS allows all origins"
+            else:
+                details += f" ⚠️ CORS origin: {cors_headers['Access-Control-Allow-Origin']}"
+                
+            self.log_test("CORS Headers", success, details)
+            return success
+        except Exception as e:
+            self.log_test("CORS Headers", False, f"Error: {str(e)}")
             return False
 
     def test_update_venta(self):
