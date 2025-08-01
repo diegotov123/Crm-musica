@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 
 class VentasMusicAPITester:
-    def __init__(self, base_url="https://4c77c675-30aa-467f-bd5e-3d701cfd9887.preview.emergentagent.com"):
+    def __init__(self, base_url="https://archivo-error.emergent.host"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
