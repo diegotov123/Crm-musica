@@ -187,7 +187,11 @@ function App() {
         setShowModal(false);
         alert(editingVenta ? 'Venta actualizada' : 'Venta creada');
       } else {
-        alert('Error al guardar la venta');
+        // Get specific error message from backend
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.detail || errorData.message || `HTTP ${response.status}`;
+        alert(`Error al guardar la venta: ${errorMessage}`);
+        console.error('Error details:', { status: response.status, error: errorData });
       }
     } catch (error) {
       alert('Error de conexión');
