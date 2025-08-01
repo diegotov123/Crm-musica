@@ -900,14 +900,19 @@ class VentasMusicAPITester:
             return False
 
     def run_all_tests(self):
-        """Run all API tests"""
+        """Run all API tests with focus on frontend-backend communication issues"""
         print("🚀 Starting Ventas Music DT API Tests")
         print(f"📡 Testing against: {self.base_url}")
+        print("🎯 FOCUS: Frontend-backend communication issues")
         print("=" * 60)
         
         # Basic connectivity tests
         print("\n📋 Basic Connectivity Tests:")
         self.test_health_endpoint()
+        
+        # CORS tests (CRITICAL for frontend-backend communication)
+        print("\n🌐 CORS Configuration Tests:")
+        self.test_cors_headers()
         
         # Authentication tests
         print("\n🔐 Authentication Tests:")
@@ -921,23 +926,24 @@ class VentasMusicAPITester:
         self.test_ventas_include_audio_field()
         self.test_get_stats()
         
-        # CRUD operations tests
-        print("\n🔄 CRUD Operations Tests:")
+        # CRITICAL TESTS - Create venta functionality (user's main issue)
+        print("\n🎯 CRITICAL TESTS - Create Venta (User's Issue):")
         self.test_create_venta()
+        self.test_create_venta_missing_fields()
         self.test_update_venta()
         
-        # Audio functionality tests - ENHANCED FOR FORMAT PRESERVATION
+        # Audio functionality tests
         print("\n🎵 Audio Functionality Tests:")
-        self.test_upload_audio_formats()           # NEW: Test multiple formats
-        self.test_download_audio_format_preservation()  # NEW: Test format preservation
-        self.test_download_audio_query_token()     # CRITICAL TEST
-        self.test_download_mobile_endpoint()       # NEW MOBILE TEST
+        self.test_upload_audio_formats()
+        self.test_download_audio_format_preservation()
+        self.test_download_audio_query_token()
+        self.test_download_mobile_endpoint()
         self.test_delete_audio()
         
-        # CRITICAL TEST - DIEGOTO download
-        print("\n🎯 CRITICAL TEST - DIEGOTO Download:")
+        # DIEGOTO specific tests
+        print("\n🎯 DIEGOTO Specific Tests:")
         self.test_diegoto_download()
-        self.test_diegoto_mobile_download()     # NEW DIEGOTO MOBILE TEST
+        self.test_diegoto_mobile_download()
         
         # Cleanup
         print("\n🧹 Cleanup Tests:")
@@ -949,9 +955,11 @@ class VentasMusicAPITester:
         
         if self.tests_passed == self.tests_run:
             print("🎉 All tests PASSED! API is working correctly.")
+            print("✅ Backend API is functional - issue likely in frontend error handling")
             return 0
         else:
             print(f"⚠️  {self.tests_run - self.tests_passed} tests FAILED!")
+            print("❌ Backend issues found that may cause frontend errors")
             return 1
 
 def main():
