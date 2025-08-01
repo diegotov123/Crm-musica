@@ -15,6 +15,17 @@ import tempfile
 import io
 import shutil
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
+print("🔧 Environment Variables Loaded:")
+print(f"MONGO_URL: {'mongodb+srv' in str(os.environ.get('MONGO_URL', ''))}")
+print(f"DB_NAME: {os.environ.get('DB_NAME', 'NOT SET')}")
+print(f"SECRET_KEY: {'SET' if len(os.environ.get('SECRET_KEY', '')) > 10 else 'NOT SET'}")
+print(f"UPLOAD_DIR: {os.environ.get('UPLOAD_DIR', 'NOT SET')}")
+import shutil
+
 # Initialize FastAPI app
 app = FastAPI()
 
